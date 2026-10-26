@@ -32,6 +32,7 @@ input:focus, select:focus, textarea:focus { border-color: var(--accent-line); }
 textarea { resize: vertical; min-height: 90px; }
 label.f { display: block; font-size: 12px; font-weight: 700; color: var(--muted); margin: 12px 0 5px; }
 .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 40px; padding: 0 14px; border-radius: 10px; border: 1px solid var(--line); background: var(--card); font-weight: 650; }
+a.btn { text-decoration: none; color: inherit; box-sizing: border-box; }
 .btn.primary { background: var(--accent-soft); border-color: var(--accent-line); color: #d9cbff; }
 .btn.danger { color: var(--red); border-color: rgba(233,138,138,.35); background: transparent; }
 .btn.ghost { background: transparent; }
@@ -290,7 +291,7 @@ input[type=range] { min-height: 0; padding: 0; accent-color: var(--accent); bord
    Criatura Light — versão leve do Criatura Problemática PRO para celular/tablet
    Dados só neste aparelho (IndexedDB). Backup: arquivo .zip (Mais → Backup).
    ===================================================================== */
-const APP_VER = '1.05';
+const APP_VER = '1.06';
 const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const uid = p => p + '_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
@@ -800,10 +801,13 @@ async function fxUpdate(quiet) {
   } catch (e) { if (!quiet) toast('Não consegui atualizar agora — dá pra digitar a cotação à mão'); }
   finally { fxBusy = false; }
 }
+/* tabela do PayPal Brasil pra quem recebe do exterior (atualizo junto com o app) */
+const PAYPAL_BR = { fee: 6.4, fixed: 0.30, spread: 3.5, at: 'out/2026' };
 function renderFx(m) {
-  const fx = S.settings.fx, rate = fxRate(), fee = Number(fx.fee) || 0;
+  const fx = S.settings.fx, rate = fxRate(), fee = Number(fx.fee) || 0, fixed = Number(fx.fixed) || 0, spread = Number(fx.spread) || 0;
   const when = fx.at ? new Date(fx.at).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '';
-  const net = usd => usd * rate * (1 - fee / 100);
+  const net = (usd, f = fee, fi = fixed, sp = spread) => Math.max(0, usd * (1 - f / 100) - fi) * rate * (1 - sp / 100);
+  const hasFee = fee || fixed || spread, isPP = fee === PAYPAL_BR.fee && fixed === PAYPAL_BR.fixed && spread === PAYPAL_BR.spread;
   const bx = document.createElement('div'); m.appendChild(bx);
   bx.innerHTML = `<div class="card" style="margin-bottom:10px"><div class="k muted" style="font-size:12px;font-weight:650">Cotação do dólar</div>
       <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-top:4px"><b style="font-size:24px">US$ 1 = ${money(rate)}</b><small class="muted">${fx.manual ? '✏️ digitada à mão' : when ? 'atualizada ' + when : ''}</small></div>
@@ -811,13 +815,24 @@ function renderFx(m) {
     <div class="card" style="margin-bottom:10px"><div class="k muted" style="font-size:12px;font-weight:650">Converter</div>
       <div class="row" style="margin-top:8px"><input id="fx-in" type="number" inputmode="decimal" step="0.01" placeholder="Valor">${optsHtml('fxd', [['u2b', 'US$ → R$'], ['b2u', 'R$ → US$']], fx.dir || 'u2b').replace('class="opts"', 'class="opts" style="flex:0 0 auto"')}</div>
       <div id="fx-out" style="font-size:22px;font-weight:800;margin-top:10px;min-height:30px"></div>
-      <label class="f">Taxa do PayPal / conversão (%)</label><input id="fx-fee" type="number" inputmode="decimal" step="0.1" value="${fee || ''}" placeholder="0 — ex.: 6,4"><small class="muted">Desconta a taxa no “você recebe”.</small></div>
-    <div class="group-h">Tabelinha (já com a taxa)</div>
+    </div>
+    <div class="card" style="margin-bottom:10px"><div class="k muted" style="font-size:12px;font-weight:650">Taxas (pra calcular o “você recebe”)</div>
+      <div class="row" style="margin-top:8px"><div><label class="f">Taxa (%)</label><input id="fx-fee" type="number" inputmode="decimal" step="0.01" value="${fee || ''}" placeholder="0"></div>
+        <div><label class="f">Fixa (US$)</label><input id="fx-fix" type="number" inputmode="decimal" step="0.01" value="${fixed || ''}" placeholder="0"></div>
+        <div><label class="f">Conversão (%)</label><input id="fx-spr" type="number" inputmode="decimal" step="0.01" value="${spread || ''}" placeholder="0"></div></div>
+      <div class="row" style="margin-top:10px"><button class="btn${isPP ? '' : ' primary'}" id="fx-pp">🅿️ Usar taxas do PayPal</button><button class="btn" id="fx-zero" style="flex:0 0 auto">Zerar</button></div>
+      <small class="muted" style="display:block;margin-top:8px">PayPal (recebendo do exterior): ${String(PAYPAL_BR.fee).replace('.', ',')}% + US$ ${PAYPAL_BR.fixed.toFixed(2).replace('.', ',')} por pagamento, e uns ${String(PAYPAL_BR.spread).replace('.', ',')}% a menos na cotação se converter pelo PayPal. Valores de ${PAYPAL_BR.at} — o PayPal não deixa apps buscarem a tabela sozinhos, então vale conferir de vez em quando.</small>
+      <a class="btn ghost" style="margin-top:8px;width:100%" href="https://www.paypal.com/br/webapps/mpp/merchant-fees" target="_blank" rel="noopener">📄 Conferir na tabela oficial do PayPal</a></div>
+    <div class="group-h">Tabelinha${hasFee ? ' (já com as taxas)' : ''}</div>
     <div class="card"><div class="bars">${[10, 20, 30, 50, 80, 100, 150, 200, 300].map(u => `<div class="bar" style="grid-template-columns:80px 1fr auto"><span>US$ ${u}</span><span></span><b class="money">${money(net(u))}</b></div>`).join('')}</div></div>`;
-  const out = () => { const v = Number($('#fx-in').value) || 0, d = optVal(m, 'fxd') || 'u2b', f = Number($('#fx-fee').value) || 0;
-    $('#fx-out').innerHTML = !v ? '<span class="muted" style="font-size:14px;font-weight:500">Digite um valor</span>' : d === 'u2b' ? `${money(v * rate)}${f ? ` <small class="muted" style="font-size:13px">· você recebe ~ <b class="money">${money(v * rate * (1 - f / 100))}</b></small>` : ''}` : money(rate ? v / rate : 0, 'USD'); };
+  const out = () => { const v = Number($('#fx-in').value) || 0, d = optVal(m, 'fxd') || 'u2b';
+    $('#fx-out').innerHTML = !v ? '<span class="muted" style="font-size:14px;font-weight:500">Digite um valor</span>' : d === 'u2b' ? `${money(v * rate)}${hasFee ? ` <small class="muted" style="font-size:13px">· você recebe ~ <b class="money">${money(net(v))}</b></small>` : ''}` : money(rate ? v / rate : 0, 'USD'); };
   $('#fx-in').oninput = out; bindOpts(m, 'fxd', v => { fx.dir = v; save(false); out(); }); out();
   $('#fx-fee').onchange = e => { fx.fee = Number(e.target.value) || 0; save(false); render(); };
+  $('#fx-fix').onchange = e => { fx.fixed = Number(e.target.value) || 0; save(false); render(); };
+  $('#fx-spr').onchange = e => { fx.spread = Number(e.target.value) || 0; save(false); render(); };
+  $('#fx-pp').onclick = () => { Object.assign(fx, { fee: PAYPAL_BR.fee, fixed: PAYPAL_BR.fixed, spread: PAYPAL_BR.spread }); save(false); render(); toast('🅿️ Taxas do PayPal aplicadas'); };
+  $('#fx-zero').onclick = () => { Object.assign(fx, { fee: 0, fixed: 0, spread: 0 }); save(false); render(); };
   $('#fx-up').onclick = () => fxUpdate(false);
   $('#fx-man').onclick = async () => { const v = await askText('US$ 1 vale quantos R$?', String(rate).replace('.', ','), 'ex.: 5,42'); if (!v) return; const n = Number(v.replace(',', '.')); if (!n) return toast('Valor inválido'); fx.rate = n; fx.manual = true; fx.at = Date.now(); save(false); render(); };
 }
@@ -1342,6 +1357,29 @@ $('#cmp-close').onclick = () => { $('#cmp').classList.remove('open'); if (!$('#v
 $('#cmp-swap').onclick = () => { const c = cmpState; [c.keyA, c.keyB, c.labA, c.labB] = [c.keyB, c.keyA, c.labB, c.labA]; cmpPaint(); };
 document.addEventListener('keydown', e => { if (!cmpState) return; if (e.key === 'Escape') $('#cmp-close').click(); if (e.key === 'ArrowLeft') cmpMove(cmpState.pos - .05); if (e.key === 'ArrowRight') cmpMove(cmpState.pos + .05); });
 
+
+/* ↩️ gesto de voltar do celular (deslizar do lado): fecha o que está aberto em vez de sair do app.
+   Na Galeria, sem nada aberto, precisa voltar 2 vezes seguidas pra sair. */
+let backAt = 0;
+const isOpen = id => $('#' + id).classList.contains('open');
+function backGuard() { try { if (!(history.state && history.state.guard)) history.pushState({ guard: 1 }, ''); } catch (e) {} }
+function backStep() {   // fecha a coisa de cima; devolve false se não tinha nada pra fechar
+  if (cmpState && isOpen('cmp')) { $('#cmp-close').click(); return true; }
+  if (isOpen('viewer') && $('#viewer').classList.contains('top')) { closeViewer(); return true; }
+  if (isOpen('sheet')) { closeSheet(); return true; }
+  if (isOpen('viewer')) { closeViewer(); return true; }
+  if (isOpen('studio')) { $('#st-close').click(); return true; }
+  if (selecting) { selecting = false; sel.clear(); render(); return true; }
+  if (tab !== 'gal') { tab = 'gal'; render(); window.scrollTo(0, 0); return true; }
+  return false;
+}
+window.addEventListener('popstate', () => {
+  if (backStep()) return backGuard();
+  if (Date.now() - backAt < 2200) { history.back(); return; }   // segunda vez seguida: sai de verdade
+  backAt = Date.now(); toast('↩️ Volte de novo pra sair do Criatura'); backGuard();
+});
+document.addEventListener('pointerdown', backGuard, true);   // garante a "trava" depois de qualquer toque
+
 /* ---------------- início ---------------- */
 (async () => {
   window.__bootStep = 'abrindo os dados';
@@ -1355,6 +1393,8 @@ document.addEventListener('keydown', e => { if (!cmpState) return; if (e.key ===
       reg.addEventListener('updatefound', () => { const w = reg.installing; if (!w) return; w.addEventListener('statechange', () => { if (w.state === 'installed' && navigator.serviceWorker.controller) toast('✨ Atualização do Criatura Light pronta — feche e abra o app'); }); });
     } catch (e) { console.warn('sw', e); }
   }
+  try { if (!history.state) history.replaceState({ root: 1 }, ''); } catch (e) {}
+  backGuard();
   window.__lightReady = true;
 })();
 </script>
