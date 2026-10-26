@@ -291,7 +291,7 @@ input[type=range] { min-height: 0; padding: 0; accent-color: var(--accent); bord
    Criatura Light — versão leve do Criatura Problemática PRO para celular/tablet
    Dados só neste aparelho (IndexedDB). Backup: arquivo .zip (Mais → Backup).
    ===================================================================== */
-const APP_VER = '1.06';
+const APP_VER = '1.07';
 const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const uid = p => p + '_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
@@ -1040,7 +1040,7 @@ async function renderMore(m) {
         : isIOS() ? '<p style="margin:0">No iPhone/iPad (Safari): toque em <b>Compartilhar</b> <span style="font-size:18px">⎋</span> e depois em <b>“Adicionar à Tela de Início”</b>. Ele ganha ícone e abre em tela cheia, até sem internet.</p>'
         : '<p style="margin:0">No Android (Chrome): toque no menu <b>⋮</b> e em <b>“Instalar app”</b> ou <b>“Adicionar à tela inicial”</b>.</p>'}
     </div></div>
-    <div class="credits">Criatura Light ${APP_VER} — versão leve do Criatura Problemática PRO<br>Idealizado e distribuído gratuitamente por <b>@apsalvatori</b> 💜 · Proibida a venda ou revenda.</div>`;
+    <div class="credits">Criatura Light ${APP_VER} — versão leve do Criatura Problemática PRO<br>Ideia de <b>@apsalvatori</b> · Desenvolvido por Claude (Anthropic) 💜<br>Distribuído gratuitamente — proibida a venda ou revenda.</div>`;
   const pv = () => { S.profile.name = $('#p-n').value.trim(); S.profile.handle = $('#p-h').value.trim(); save(false); };
   $('#p-n').onchange = pv; $('#p-h').onchange = pv;
   $('#s-safe').onchange = async e => { if (e.target.checked !== st.safe) await toggleSafe(); render(); };
