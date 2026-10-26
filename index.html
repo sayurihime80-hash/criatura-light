@@ -198,6 +198,9 @@ nav.tabs .dot { position: absolute; top: 9px; right: calc(50% - 16px); width: 7p
 .gkind { margin: -2px 0 8px; }
 .cthumbs { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; }
 .cthumbs img { width: 64px; height: 64px; object-fit: cover; border-radius: 10px; border: 1px solid var(--line); background: var(--card); flex: 0 0 auto; cursor: pointer; }
+.bootmsg { margin: 30px 4px; padding: 18px; border: 1px solid var(--line); border-radius: var(--r); background: var(--panel); display: flex; flex-direction: column; gap: 10px; }
+.bootmsg p { margin: 0; color: var(--muted); font-size: 14px; }
+.bootmsg code { font-size: 12px; color: var(--muted); background: var(--bg); padding: 8px 10px; border-radius: 8px; word-break: break-word; }
 /* 🎞️ Webtoon Studio */
 #studio { position: fixed; inset: 0; z-index: 65; background: var(--bg); display: none; flex-direction: column; }
 #studio.open { display: flex; }
@@ -260,12 +263,34 @@ input[type=range] { min-height: 0; padding: 0; accent-color: var(--accent); bord
 <input type="file" id="pick-backup" accept=".zip,application/zip" hidden>
 
 <script>
+/* 🛟 rede de segurança: se algo der errado ao abrir, mostra o motivo na tela (em vez de ficar tudo preto) */
+(function () {
+  var shown = false;
+  function show(msg) {
+    if (shown || window.__lightReady) return; shown = true;
+    var m = document.getElementById('main'); if (!m) return;
+    m.innerHTML = '<div class="bootmsg"><b>😵 O Criatura Light não conseguiu abrir direito</b><p>Feche o app e abra de novo. Se continuar assim, tire um print desta tela e mande pra quem te passou o app.</p><code></code><button class="btn primary" onclick="location.reload()">🔄 Tentar de novo</button></div>';
+    m.querySelector('code').textContent = String(msg || '').slice(0, 300);
+  }
+  window.addEventListener('error', function (e) { show((e.message || 'erro') + (e.lineno ? ' (linha ' + e.lineno + ')' : '')); });
+  window.addEventListener('unhandledrejection', function (e) { show('promessa: ' + (e.reason && (e.reason.message || e.reason))); });
+  setTimeout(function () { if (!window.__lightReady) show('demorou demais para abrir os dados (etapa: ' + (window.__bootStep || 'início') + ')'); }, 9000);
+  /* barra de status por cima do app (APK em tela cheia): garante um respiro em cima */
+  try {
+    var standalone = matchMedia('(display-mode: standalone), (display-mode: fullscreen)').matches || document.referrer.indexOf('android-app://') === 0;
+    var probe = document.createElement('div'); probe.style.cssText = 'position:fixed;top:0;height:0;padding-top:env(safe-area-inset-top,0px);visibility:hidden';
+    document.documentElement.appendChild(probe); var envTop = parseFloat(getComputedStyle(probe).paddingTop) || 0; probe.remove();
+    if (standalone && envTop === 0 && screen.height - window.innerHeight < 30) document.documentElement.style.setProperty('--safe-t', '28px');
+  } catch (e) {}
+})();
+</script>
+<script>
 'use strict';
 /* =====================================================================
    Criatura Light — versão leve do Criatura Problemática PRO para celular/tablet
    Dados só neste aparelho (IndexedDB). Backup: arquivo .zip (Mais → Backup).
    ===================================================================== */
-const APP_VER = '1.04';
+const APP_VER = '1.05';
 const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const uid = p => p + '_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
@@ -285,7 +310,7 @@ function db() {
   dbP = new Promise((res, rej) => {
     const r = indexedDB.open(DB_NAME, 1);
     r.onupgradeneeded = () => { const d = r.result; if (!d.objectStoreNames.contains('kv')) d.createObjectStore('kv'); if (!d.objectStoreNames.contains('blobs')) d.createObjectStore('blobs'); };
-    r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error);
+    r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); r.onblocked = () => console.warn('IndexedDB bloqueado por outra aba');
   });
   return dbP;
 }
@@ -1319,7 +1344,9 @@ document.addEventListener('keydown', e => { if (!cmpState) return; if (e.key ===
 
 /* ---------------- início ---------------- */
 (async () => {
+  window.__bootStep = 'abrindo os dados';
   await load();
+  window.__bootStep = 'desenhando a tela';
   render();
   if (backupLate()) setTimeout(() => toast('💾 Faz tempo que você não faz backup — veja em ⚙️ Mais'), 1200);
   if ('serviceWorker' in navigator && location.protocol !== 'file:') {
