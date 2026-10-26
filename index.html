@@ -1,0 +1,1247 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Criatura Light</title>
+<meta name="description" content="A versão leve do Criatura Problemática PRO: galeria, clientes, financeiro e ideias no celular e no tablet.">
+<meta name="theme-color" content="#15171e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Criatura">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<style>
+:root {
+  --bg: #0d0e12; --panel: #15171e; --card: #1c1f2a; --line: #2b2f3e; --text: #e2e4ed; --muted: #8a90a4;
+  --accent: #a98be8; --accent-soft: rgba(169,139,232,.14); --accent-line: rgba(169,139,232,.38);
+  --green: #6fcf97; --red: #e98a8a; --yellow: #e5c46a;
+  --r: 14px; --safe-b: env(safe-area-inset-bottom, 0px); --safe-t: env(safe-area-inset-top, 0px);
+  --nav-h: 62px;
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text); font: 15px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+body { overscroll-behavior-y: contain; }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+input, select, textarea { width: 100%; background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; outline: none; min-height: 42px; }
+input:focus, select:focus, textarea:focus { border-color: var(--accent-line); }
+textarea { resize: vertical; min-height: 90px; }
+label.f { display: block; font-size: 12px; font-weight: 700; color: var(--muted); margin: 12px 0 5px; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 40px; padding: 0 14px; border-radius: 10px; border: 1px solid var(--line); background: var(--card); font-weight: 650; }
+.btn.primary { background: var(--accent-soft); border-color: var(--accent-line); color: #d9cbff; }
+.btn.danger { color: var(--red); border-color: rgba(233,138,138,.35); background: transparent; }
+.btn.ghost { background: transparent; }
+.btn:disabled { opacity: .45; }
+.row { display: flex; gap: 8px; align-items: center; }
+.row > * { flex: 1; }
+.muted { color: var(--muted); }
+small { font-size: 12px; }
+
+/* layout */
+#app { min-height: 100%; padding: calc(var(--safe-t) + 0px) 0 calc(var(--nav-h) + var(--safe-b) + 10px); }
+header.top { position: sticky; top: 0; z-index: 20; background: rgba(13,14,18,.92); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); padding: calc(var(--safe-t) + 10px) 16px 10px; border-bottom: 1px solid var(--line); }
+header.top h1 { margin: 0; font-size: 19px; display: flex; align-items: center; gap: 8px; }
+header.top .sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+main { padding: 12px 16px 24px; max-width: 1200px; margin: 0 auto; }
+nav.tabs { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; display: flex; background: rgba(21,23,30,.97); border-top: 1px solid var(--line); padding-bottom: var(--safe-b); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+nav.tabs button { flex: 1; height: var(--nav-h); background: none; border: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 11px; color: var(--muted); position: relative; }
+nav.tabs button .ic { font-size: 21px; line-height: 1; }
+nav.tabs button.on { color: var(--text); }
+nav.tabs button.on::before { content: ''; position: absolute; top: 0; left: 28%; right: 28%; height: 2px; border-radius: 2px; background: var(--accent); }
+nav.tabs .dot { position: absolute; top: 9px; right: calc(50% - 16px); width: 7px; height: 7px; border-radius: 50%; background: var(--yellow); }
+@media (min-width: 820px) {
+  #app { padding: 0 0 20px 92px; }
+  nav.tabs { top: 0; right: auto; width: 82px; flex-direction: column; justify-content: flex-start; padding: calc(var(--safe-t) + 14px) 0 0; border-top: 0; border-right: 1px solid var(--line); }
+  nav.tabs button { flex: 0 0 auto; height: 70px; }
+  nav.tabs button.on::before { top: 14px; bottom: 14px; left: 0; right: auto; width: 3px; height: auto; }
+  main { padding: 16px 24px 30px; }
+  header.top { padding-left: 24px; }
+}
+
+/* FAB */
+.fab { position: fixed; right: 18px; bottom: calc(var(--nav-h) + var(--safe-b) + 16px); z-index: 25; width: 56px; height: 56px; border-radius: 18px; border: 1px solid var(--accent-line); background: #2a2340; color: #e7dcff; font-size: 28px; box-shadow: 0 8px 22px rgba(0,0,0,.45); }
+@media (min-width: 820px) { .fab { bottom: 24px; right: 28px; } }
+
+/* chips e segmentos (tudo com altura fixa: nada pula) */
+.seg { display: inline-flex; background: var(--panel); border: 1px solid var(--line); border-radius: 11px; padding: 3px; gap: 2px; }
+.seg button { border: 0; background: none; height: 32px; padding: 0 12px; border-radius: 8px; color: var(--muted); font-weight: 650; font-size: 13px; }
+.seg button.on { background: var(--accent-soft); color: var(--text); }
+.chips { display: flex; gap: 8px; overflow-x: auto; padding: 2px 0 8px; scrollbar-width: none; min-height: 46px; }
+.chips::-webkit-scrollbar { display: none; }
+.chip { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 13px; border-radius: 999px; border: 1px solid var(--line); background: var(--panel); font-size: 13px; font-weight: 650; white-space: nowrap; }
+.chip.on { border-color: var(--accent-line); background: var(--accent-soft); }
+.chip em { font-style: normal; font-size: 11px; color: var(--muted); }
+.chip.new { border-style: dashed; color: var(--muted); }
+.toolbar { display: flex; gap: 8px; align-items: center; margin-bottom: 10px; flex-wrap: wrap; }
+.toolbar .search { flex: 1; min-width: 160px; }
+
+/* galeria */
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(108px, 1fr)); gap: 8px; }
+@media (min-width: 600px) { .grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; } }
+.tile { position: relative; aspect-ratio: 1; border-radius: 12px; overflow: hidden; background: var(--card); border: 1px solid var(--line); user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+.tile img { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; }
+.tile.blur img { filter: blur(18px) saturate(.6); transform: scale(1.15); }
+.tile .tg { position: absolute; left: 6px; bottom: 6px; font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 6px; background: rgba(200,90,110,.85); color: #fff; }
+.tile .ck { position: absolute; top: 6px; right: 6px; width: 24px; height: 24px; border-radius: 50%; border: 2px solid rgba(255,255,255,.8); background: rgba(0,0,0,.3); display: none; }
+.selecting .tile .ck { display: block; }
+.tile.sel .ck { background: var(--accent); border-color: #fff; }
+.tile.sel { outline: 2px solid var(--accent); outline-offset: -2px; }
+.empty { text-align: center; color: var(--muted); padding: 48px 16px; border: 1px dashed var(--line); border-radius: var(--r); }
+.empty b { color: var(--text); }
+.selbar { position: fixed; left: 0; right: 0; bottom: calc(var(--nav-h) + var(--safe-b)); z-index: 26; display: flex; gap: 8px; padding: 10px 12px; background: var(--panel); border-top: 1px solid var(--line); overflow-x: auto; }
+.selbar .btn { flex: 0 0 auto; }
+@media (min-width: 820px) { .selbar { left: 82px; bottom: 0; } }
+
+/* visualizador */
+#viewer { position: fixed; inset: 0; z-index: 60; background: #000; display: none; flex-direction: column; }
+#viewer.open { display: flex; }
+#viewer.top { z-index: 85; }   /* versões abertas de dentro de um rascunho: fica por cima da janelinha */
+#viewer .vbar { display: flex; align-items: center; gap: 8px; padding: calc(var(--safe-t) + 8px) 10px 8px; color: #fff; }
+#viewer .vbar b { flex: 1; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#viewer .vbar button, #viewer .vfoot button { background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.14); color: #fff; height: 40px; min-width: 40px; border-radius: 10px; padding: 0 12px; }
+#viewer .vstage { flex: 1; overflow: auto; display: flex; align-items: center; justify-content: center; touch-action: pan-x pan-y pinch-zoom; }
+#viewer .vstage img { max-width: 100%; max-height: 100%; object-fit: contain; user-select: none; -webkit-user-select: none; }
+#viewer .vstage.zoom { display: block; }
+#viewer .vstage.zoom img { max-width: none; max-height: none; width: 200%; }
+#viewer .vfoot { display: flex; gap: 8px; justify-content: center; padding: 8px 10px calc(var(--safe-b) + 10px); flex-wrap: wrap; }
+
+/* listas e cartões */
+.list { display: flex; flex-direction: column; gap: 8px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); padding: 12px 14px; }
+.card.tap { cursor: pointer; }
+.card .t { font-weight: 700; display: flex; align-items: center; gap: 8px; }
+.card .t span.grow { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.card .s { font-size: 12.5px; color: var(--muted); margin-top: 3px; display: flex; flex-wrap: wrap; gap: 6px 10px; }
+.badge { display: inline-flex; align-items: center; height: 20px; padding: 0 8px; border-radius: 999px; font-size: 11px; font-weight: 750; border: 1px solid var(--line); color: var(--muted); }
+.badge.late { color: var(--red); border-color: rgba(233,138,138,.4); background: rgba(233,138,138,.08); }
+.badge.soon { color: var(--yellow); border-color: rgba(229,196,106,.4); background: rgba(229,196,106,.07); }
+.badge.paid { color: var(--green); border-color: rgba(111,207,151,.38); background: rgba(111,207,151,.07); }
+.badge.part { color: #b9a6ee; border-color: var(--accent-line); }
+.group-h { font-size: 12px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin: 16px 2px 6px; display: flex; gap: 8px; align-items: center; }
+.group-h em { font-style: normal; font-weight: 700; }
+
+/* financeiro */
+.month { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
+.month b { font-size: 16px; }
+.month .btn { min-width: 44px; }
+.sum { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+@media (min-width: 700px) { .sum { grid-template-columns: repeat(4, 1fr); } }
+.sum .card { padding: 12px; }
+.sum .k { font-size: 12px; color: var(--muted); font-weight: 650; }
+.sum .v { font-size: 19px; font-weight: 800; margin-top: 4px; font-variant-numeric: tabular-nums; }
+.v.pos { color: var(--green); } .v.neg { color: var(--red); } .v.wait { color: var(--yellow); }
+.tx { display: flex; align-items: center; gap: 12px; }
+.tx .ic { width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center; background: var(--card); font-size: 18px; flex: 0 0 auto; }
+.tx .mid { flex: 1; min-width: 0; }
+.tx .mid b { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 650; }
+.tx .amt { font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.bars { display: flex; flex-direction: column; gap: 8px; }
+.bar { display: grid; grid-template-columns: 110px 1fr auto; gap: 10px; align-items: center; font-size: 13px; }
+.bar .track { height: 8px; border-radius: 6px; background: var(--card); overflow: hidden; }
+.bar .fill { height: 100%; background: rgba(169,139,232,.55); border-radius: 6px; }
+.hide-money .money { filter: blur(7px); user-select: none; }
+
+/* ideias */
+.notes { columns: 2 160px; column-gap: 10px; }
+@media (min-width: 820px) { .notes { columns: 4 200px; } }
+.note { break-inside: avoid; margin: 0 0 10px; border-radius: 14px; padding: 12px; color: #1d1b22; position: relative; cursor: pointer; }
+.note img { width: 100%; border-radius: 9px; display: block; margin-bottom: 8px; }
+.note p { margin: 0; white-space: pre-wrap; word-wrap: break-word; font-size: 14px; }
+.note .pin { position: absolute; top: 6px; right: 8px; font-size: 13px; }
+.note small { display: block; margin-top: 8px; opacity: .6; font-size: 11px; }
+.swatches { display: flex; gap: 10px; flex-wrap: wrap; }
+.sw { width: 36px; height: 36px; border-radius: 50%; border: 2px solid transparent; }
+.sw.on { border-color: #fff; box-shadow: 0 0 0 2px var(--accent); }
+
+/* bottom sheet */
+#sheet-bg { position: fixed; inset: 0; z-index: 70; background: rgba(0,0,0,.55); display: none; }
+#sheet-bg.open { display: block; }
+#sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 71; max-height: 92vh; overflow: auto; background: var(--panel); border-top: 1px solid var(--line); border-radius: 20px 20px 0 0; padding: 8px 18px calc(var(--safe-b) + 18px); transform: translateY(105%); transition: transform .22s ease; }
+#sheet.open { transform: none; }
+#sheet .grab { width: 40px; height: 4px; border-radius: 4px; background: var(--line); margin: 4px auto 10px; }
+#sheet h2 { margin: 0 0 4px; font-size: 18px; }
+#sheet .actions { display: flex; gap: 8px; margin-top: 18px; }
+#sheet .actions .btn { flex: 1; }
+@media (min-width: 820px) {
+  #sheet { left: 50%; right: auto; bottom: auto; top: 50%; width: min(560px, 92vw); max-height: 86vh; border-radius: 18px; border: 1px solid var(--line); transform: translate(-50%, -46%); opacity: 0; pointer-events: none; transition: opacity .18s, transform .18s; }
+  #sheet.open { transform: translate(-50%, -50%); opacity: 1; pointer-events: auto; }
+  #sheet .grab { display: none; }
+}
+.opts { display: flex; flex-wrap: wrap; gap: 8px; }
+.opt { height: 36px; padding: 0 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); font-size: 13px; font-weight: 650; }
+.opt.on { border-color: var(--accent-line); background: var(--accent-soft); }
+.switch { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+.switch:last-child { border-bottom: 0; }
+.switch input { width: 46px; height: 26px; min-height: 0; appearance: none; -webkit-appearance: none; border-radius: 999px; background: var(--card); border: 1px solid var(--line); position: relative; padding: 0; flex: 0 0 auto; }
+.switch input::after { content: ''; position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; border-radius: 50%; background: var(--muted); transition: left .15s; }
+.switch input:checked { background: var(--accent-soft); border-color: var(--accent-line); }
+.switch input:checked::after { left: 22px; background: var(--accent); }
+.sect { margin-bottom: 14px; }
+.sect h3 { font-size: 13px; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); margin: 18px 2px 8px; }
+.notice { border: 1px solid rgba(229,196,106,.35); background: rgba(229,196,106,.06); border-radius: var(--r); padding: 12px 14px; }
+
+/* 🎞️ Webtoon Studio */
+#studio { position: fixed; inset: 0; z-index: 65; background: var(--bg); display: none; flex-direction: column; }
+#studio.open { display: flex; }
+#studio .st-top { display: flex; align-items: center; gap: 10px; padding: calc(var(--safe-t) + 10px) 16px 10px; border-bottom: 1px solid var(--line); background: var(--panel); }
+#studio .st-top b { flex: 1; font-size: 17px; }
+#studio .st-body { flex: 1; overflow: auto; padding: 14px 16px calc(var(--safe-b) + 30px); }
+#studio .st-wrap { max-width: 900px; margin: 0 auto; }
+.st-files { display: flex; gap: 6px; overflow-x: auto; padding: 4px 0 8px; }
+.st-files img { height: 92px; width: auto; border-radius: 8px; border: 1px solid var(--line); background: #fff; flex: 0 0 auto; }
+.st-out { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; margin-top: 10px; }
+.st-out.ig { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+.st-out figure { margin: 0; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.st-out img { width: 100%; display: block; background: #fff; }
+.st-out figcaption { font-size: 11px; color: var(--muted); padding: 4px 7px; display: flex; justify-content: space-between; }
+.st-warn { color: var(--yellow); font-size: 13px; margin-top: 6px; }
+#cv-cap { width: 100%; max-width: 420px; display: block; margin: 10px auto; border-radius: 10px; border: 1px solid var(--line); background: #222; touch-action: none; }
+input[type=range] { min-height: 0; padding: 0; accent-color: var(--accent); border: 0; background: none; }
+/* ⚖️ comparar (barrinha que corre) */
+#cmp { position: fixed; inset: 0; z-index: 88; background: #000; display: none; flex-direction: column; }
+#cmp.open { display: flex; }
+#cmp .cbar { display: flex; align-items: center; gap: 10px; padding: calc(var(--safe-t) + 8px) 10px 8px; color: #fff; }
+#cmp .cbar b { flex: 1; }
+#cmp .cbar button { background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.14); color: #fff; height: 40px; min-width: 40px; border-radius: 10px; padding: 0 12px; }
+#cmp .cbox { flex: 1; position: relative; overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none; margin: 0 8px calc(var(--safe-b) + 10px); }
+#cmp .cbox img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
+#cmp .cbox .ca { clip-path: inset(0 50% 0 0); }
+#cmp .cline { position: absolute; top: 0; bottom: 0; left: 50%; width: 2px; margin-left: -1px; background: #fff; box-shadow: 0 0 6px rgba(0,0,0,.6); pointer-events: none; }
+#cmp .cknob { position: absolute; top: 50%; left: 50%; width: 44px; height: 44px; margin: -22px 0 0 -22px; border-radius: 50%; background: #fff; color: #222; display: grid; place-items: center; font-weight: 900; box-shadow: 0 2px 10px rgba(0,0,0,.5); pointer-events: none; }
+#cmp .clab { position: absolute; top: 10px; padding: 3px 9px; border-radius: 8px; background: rgba(0,0,0,.55); color: #fff; font-size: 12px; font-weight: 700; pointer-events: none; }
+#toast { position: fixed; left: 50%; bottom: calc(var(--nav-h) + var(--safe-b) + 20px); transform: translateX(-50%) translateY(20px); opacity: 0; z-index: 90; background: #262338; border: 1px solid var(--accent-line); color: var(--text); padding: 10px 16px; border-radius: 12px; font-size: 14px; max-width: 90vw; text-align: center; transition: opacity .2s, transform .2s; pointer-events: none; }
+#toast.on { opacity: 1; transform: translateX(-50%); }
+.credits { text-align: center; font-size: 12px; color: var(--muted); margin: 26px 0 6px; }
+.thumb-pick { display: flex; gap: 10px; align-items: center; }
+.thumb-pick img { width: 64px; height: 64px; object-fit: cover; border-radius: 10px; border: 1px solid var(--line); }
+</style>
+</head>
+<body>
+<div id="app">
+  <header class="top"><h1 id="h-title">🎨 Galeria</h1><div class="sub" id="h-sub"></div></header>
+  <main id="main"></main>
+</div>
+<button class="fab" id="fab" aria-label="Adicionar">＋</button>
+<nav class="tabs" id="tabs">
+  <button data-tab="gal" class="on"><span class="ic">🖼️</span>Galeria</button>
+  <button data-tab="jobs"><span class="ic">👥</span>Trabalhos</button>
+  <button data-tab="fin"><span class="ic">💰</span>Financeiro</button>
+  <button data-tab="ideas"><span class="ic">💡</span>Ideias</button>
+  <button data-tab="more"><span class="ic">⚙️</span>Mais</button>
+</nav>
+<div id="viewer"><div class="vbar"><button id="v-close" aria-label="Fechar">✕</button><b id="v-title"></b><span id="v-pos" class="muted" style="font-size:12px"></span></div>
+  <div class="vstage" id="v-stage"><img id="v-img" alt=""></div>
+  <div class="vfoot"><button id="v-prev" aria-label="Anterior">‹</button><button id="v-edit">✏️ Editar</button><button id="v-share">📤 Compartilhar</button><button id="v-next" aria-label="Próxima">›</button></div>
+</div>
+<div id="studio"><div class="st-top"><button class="btn" id="st-close">✕</button><b>🎞️ Webtoon Studio</b></div><div class="st-body"><div class="st-wrap" id="st-main"></div></div></div>
+<div id="cmp"><div class="cbar"><button id="cmp-close">✕</button><b id="cmp-title">⚖️ Comparar</b><button id="cmp-swap" title="Trocar os lados">⇄</button></div>
+  <div class="cbox" id="cmp-box"><img class="cb" id="cmp-b" alt=""><img class="ca" id="cmp-a" alt=""><div class="cline" id="cmp-line"></div><div class="cknob" id="cmp-knob">⇆</div><span class="clab" id="cmp-la" style="left:10px"></span><span class="clab" id="cmp-lb" style="right:10px"></span></div></div>
+<div id="sheet-bg"></div><div id="sheet" role="dialog" aria-modal="true"></div>
+<div id="toast" role="status"></div>
+<input type="file" id="pick-img" accept="image/*" multiple hidden>
+<input type="file" id="pick-backup" accept=".zip,application/zip" hidden>
+
+<script>
+'use strict';
+/* =====================================================================
+   Criatura Light — versão leve do Criatura Problemática PRO para celular/tablet
+   Dados só neste aparelho (IndexedDB). Backup: arquivo .zip (Mais → Backup).
+   ===================================================================== */
+const APP_VER = '1.03';
+const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const uid = p => p + '_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const today = () => { const d = new Date(); return new Date(d - d.getTimezoneOffset() * 6e4).toISOString().slice(0, 10); };
+const norm = t => String(t || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+const fmtDate = s => { if (!s) return ''; const [y, m, d] = String(s).slice(0, 10).split('-'); return d ? `${d}/${m}/${y}` : s; };
+const daysTo = s => { if (!s) return null; const a = new Date(today() + 'T00:00'), b = new Date(String(s).slice(0, 10) + 'T00:00'); return Math.round((b - a) / 864e5); };
+const money = (v, cur = 'BRL') => (Number(v) || 0).toLocaleString(cur === 'USD' ? 'en-US' : 'pt-BR', { style: 'currency', currency: cur === 'USD' ? 'USD' : 'BRL' });
+let toastT = 0;
+function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), 2600); }
+
+/* ---------------- armazenamento (IndexedDB) ---------------- */
+const DB_NAME = 'criatura-light';
+let dbP = null;
+function db() {
+  if (dbP) return dbP;
+  dbP = new Promise((res, rej) => {
+    const r = indexedDB.open(DB_NAME, 1);
+    r.onupgradeneeded = () => { const d = r.result; if (!d.objectStoreNames.contains('kv')) d.createObjectStore('kv'); if (!d.objectStoreNames.contains('blobs')) d.createObjectStore('blobs'); };
+    r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error);
+  });
+  return dbP;
+}
+async function idb(store, mode, fn) {
+  const d = await db();
+  return new Promise((res, rej) => { const tx = d.transaction(store, mode); const st = tx.objectStore(store); const r = fn(st); tx.oncomplete = () => res(r && 'result' in r ? r.result : undefined); tx.onerror = () => rej(tx.error); });
+}
+const blobPut = (k, b) => idb('blobs', 'readwrite', s => s.put(b, k));
+const blobGet = k => idb('blobs', 'readonly', s => s.get(k));
+const blobDel = k => idb('blobs', 'readwrite', s => s.delete(k));
+const blobKeys = () => idb('blobs', 'readonly', s => s.getAllKeys());
+
+const DEF = () => ({
+  v: 1, profile: { name: '', handle: '' },
+  settings: { currency: 'BRL', safe: false, safePin: '', hideMoney: false, lastBackup: 0, changedAt: 0, snoozeBackup: 0,
+    fx: { rate: 5.4, at: 0, fee: 0 },
+    accounts: ['Nubank', 'Inter', 'Dinheiro', 'PayPal'],
+    cats: { gasto: ['Material', 'Comida', 'Contas', 'Mimos', 'Outros'], ganho: ['Comissão', 'Venda', 'Outros'] } },
+  arts: [], folders: [], clients: [], works: [], fin: [], notes: [], drafts: []
+});
+let S = DEF();
+let saveT = 0;
+function save(touch = true) {
+  if (touch) { S.settings.changedAt = Date.now(); if (!S.settings.since) S.settings.since = Date.now(); }   // since: começou a usar (lembrete de backup conta a partir daqui)
+  clearTimeout(saveT);
+  saveT = setTimeout(() => idb('kv', 'readwrite', s => s.put(JSON.parse(JSON.stringify(S)), 'state')).catch(e => toast('⚠️ Não consegui salvar: ' + e.message)), 250);
+  askPersist();
+}
+async function load() {
+  try { const v = await idb('kv', 'readonly', s => s.get('state')); if (v) S = Object.assign(DEF(), v, { settings: Object.assign(DEF().settings, v.settings || {}, { fx: Object.assign(DEF().settings.fx, (v.settings || {}).fx || {}) }) }); } catch (e) { console.warn(e); }
+}
+let persistAsked = false;
+async function askPersist() {   // pede pro navegador não apagar os dados quando faltar espaço
+  if (persistAsked || !navigator.storage || !navigator.storage.persist) return; persistAsked = true;
+  try { if (!(await navigator.storage.persisted())) await navigator.storage.persist(); } catch (e) {}
+}
+
+/* ---------------- imagens ---------------- */
+const urlCache = new Map();
+async function blobURL(key) {
+  if (!key) return '';
+  if (urlCache.has(key)) return urlCache.get(key);
+  const b = await blobGet(key); if (!b) return '';
+  const u = URL.createObjectURL(b); urlCache.set(key, u); return u;
+}
+function dropURL(key) { const u = urlCache.get(key); if (u) { URL.revokeObjectURL(u); urlCache.delete(key); } }
+async function makeThumb(file, max = 480) {
+  const bmp = await createImageBitmap(file).catch(() => null);
+  let w, h, draw;
+  if (bmp) { w = bmp.width; h = bmp.height; draw = (c, cw, ch) => c.drawImage(bmp, 0, 0, cw, ch); }
+  else {
+    const u = URL.createObjectURL(file); const im = new Image(); im.src = u; await im.decode(); URL.revokeObjectURL(u);
+    w = im.naturalWidth; h = im.naturalHeight; draw = (c, cw, ch) => c.drawImage(im, 0, 0, cw, ch);
+  }
+  const k = Math.min(1, max / Math.max(w, h)), cv = document.createElement('canvas');
+  cv.width = Math.max(1, Math.round(w * k)); cv.height = Math.max(1, Math.round(h * k));
+  const c = cv.getContext('2d'); c.imageSmoothingQuality = 'high'; draw(c, cv.width, cv.height);
+  const blob = await new Promise(r => cv.toBlob(r, 'image/jpeg', .82));
+  return { blob, w, h };
+}
+async function addImages(files, extra = {}) {
+  files = [...files].filter(f => /^image\//.test(f.type) || /\.(png|jpe?g|webp|gif|heic|avif)$/i.test(f.name));
+  if (!files.length) return 0;
+  toast(`📥 Adicionando ${files.length} imagem(ns)…`);
+  let n = 0;
+  for (const f of files) {
+    try {
+      const id = uid('art'), t = await makeThumb(f);
+      await blobPut(id + ':o', f); await blobPut(id + ':t', t.blob);
+      S.arts.unshift({ id, title: f.name.replace(/\.[^.]+$/, ''), date: new Date(f.lastModified || Date.now()).toISOString().slice(0, 10), added: Date.now(), w: t.w, h: t.h, nsfw: false, folder: '', tags: [], notes: '', clientId: '', ...extra });
+      n++;
+    } catch (e) { console.warn(e); }
+  }
+  save(); render();
+  toast(n ? `✅ ${n} imagem(ns) adicionada(s)` : '⚠️ Não consegui ler essas imagens');
+  return n;
+}
+
+/* ---------------- bottom sheet / diálogos ---------------- */
+let sheetClose = null;
+function openSheet(html, onMount, onClose) {
+  const sh = $('#sheet'); sh.innerHTML = '<div class="grab"></div>' + html;
+  $('#sheet-bg').classList.add('open'); requestAnimationFrame(() => sh.classList.add('open'));
+  sheetClose = onClose || null;
+  if (onMount) onMount(sh);
+}
+function closeSheet() { $('#sheet').classList.remove('open'); $('#sheet-bg').classList.remove('open'); const f = sheetClose; sheetClose = null; if (f) f(); }
+$('#sheet-bg').onclick = closeSheet;
+function ask(title, body, okText = 'OK', danger = false) {
+  return new Promise(res => {
+    let done = false; const fin = v => { if (done) return; done = true; res(v); };
+    openSheet(`<h2>${esc(title)}</h2>${body ? `<p class="muted" style="white-space:pre-line">${esc(body)}</p>` : ''}<div class="actions"><button class="btn ghost" data-a="no">Cancelar</button><button class="btn ${danger ? 'danger' : 'primary'}" data-a="ok">${esc(okText)}</button></div>`,
+      sh => { sh.querySelector('[data-a=no]').onclick = () => { fin(false); closeSheet(); }; sh.querySelector('[data-a=ok]').onclick = () => { fin(true); closeSheet(); }; }, () => fin(false));
+  });
+}
+function askText(title, value = '', ph = '') {
+  return new Promise(res => {
+    let done = false; const fin = v => { if (done) return; done = true; res(v); };
+    openSheet(`<h2>${esc(title)}</h2><input id="ask-in" value="${esc(value)}" placeholder="${esc(ph)}" autocomplete="off"><div class="actions"><button class="btn ghost" data-a="no">Cancelar</button><button class="btn primary" data-a="ok">Salvar</button></div>`,
+      sh => { const i = sh.querySelector('#ask-in'); setTimeout(() => i.focus(), 250); const ok = () => { fin(i.value.trim()); closeSheet(); };
+        i.onkeydown = e => { if (e.key === 'Enter') ok(); }; sh.querySelector('[data-a=no]').onclick = () => { fin(null); closeSheet(); }; sh.querySelector('[data-a=ok]').onclick = ok; }, () => fin(null));
+  });
+}
+const optsHtml = (name, list, cur) => `<div class="opts" data-opts="${name}">${list.map(([v, l]) => `<button type="button" class="opt${v === cur ? ' on' : ''}" data-v="${esc(v)}">${l}</button>`).join('')}</div>`;
+function bindOpts(root, name, onPick) { const box = root.querySelector(`[data-opts="${name}"]`); if (!box) return; box.querySelectorAll('.opt').forEach(b => b.onclick = () => { box.querySelectorAll('.opt').forEach(x => x.classList.toggle('on', x === b)); onPick(b.dataset.v); }); }
+const optVal = (root, name) => { const b = root.querySelector(`[data-opts="${name}"] .opt.on`); return b ? b.dataset.v : ''; };
+
+/* ---------------- navegação ---------------- */
+let tab = 'gal';
+const TITLES = { gal: '🖼️ Galeria', jobs: '👥 Trabalhos', fin: '💰 Financeiro', ideas: '💡 Ideias', more: '⚙️ Mais' };
+$$('#tabs button').forEach(b => b.onclick = () => { if (tab === b.dataset.tab) { window.scrollTo({ top: 0, behavior: 'smooth' }); return; } tab = b.dataset.tab; sel.clear(); selecting = false; render(); window.scrollTo(0, 0); });
+function render() {
+  $$('#tabs button').forEach(b => b.classList.toggle('on', b.dataset.tab === tab));
+  $('#h-title').textContent = TITLES[tab];
+  document.body.classList.toggle('hide-money', !!S.settings.hideMoney);
+  const m = $('#main'); m.innerHTML = '';
+  $('#fab').style.display = tab === 'more' || selecting ? 'none' : '';
+  $('#h-sub').textContent = '';
+  ({ gal: renderGal, jobs: renderJobs, fin: renderFin, ideas: renderIdeas, more: renderMore })[tab](m);
+  updateBackupDot();
+}
+$('#fab').onclick = () => ({ gal: () => $('#pick-img').click(), jobs: () => (jobsView === 'clients' ? editClient() : editWork()), fin: () => editTx(), ideas: () => (ideasView === 'drafts' ? editDraft() : editNote()) })[tab]?.();
+$('#pick-img').onchange = async e => { const fs = [...e.target.files]; e.target.value = ''; await addImages(fs, galFolder && galFolder !== '*' ? { folder: galFolder } : {}); };
+
+/* =====================================================================
+   🖼️ GALERIA
+   ===================================================================== */
+let galMode = 'sfw', galFolder = '', galQ = '', selecting = false;
+const sel = new Set();
+function galList() {
+  const q = norm(galQ);
+  return S.arts.filter(a => {
+    if (a.nsfw && (S.settings.safe || galMode === 'sfw')) return false;   // 🛡️ modo seguro esconde tudo que é +18
+    if (galMode === 'nsfw' && !a.nsfw) return false;
+    if (galFolder && a.folder !== galFolder) return false;
+    if (q && !norm([a.title, (a.tags || []).join(' '), a.notes, (S.clients.find(c => c.id === a.clientId) || {}).name].join(' ')).includes(q)) return false;
+    return true;
+  });
+}
+function renderGal(m) {
+  if (S.settings.safe && galMode === 'nsfw') galMode = 'sfw';
+  const vis = S.arts.filter(a => !(a.nsfw && S.settings.safe));
+  $('#h-sub').textContent = `${vis.length} arte(s)`;
+  m.innerHTML = `<div class="toolbar"><div class="seg"><button data-gm="sfw" class="${galMode === 'sfw' ? 'on' : ''}">🟢 Só SFW</button>${S.settings.safe ? '' : `<button data-gm="nsfw" class="${galMode === 'nsfw' ? 'on' : ''}">🔞 NSFW</button>`}<button data-gm="all" class="${galMode === 'all' ? 'on' : ''}">🌐 Tudo</button></div>
+      <button class="btn ghost" id="safe-btn" style="min-height:38px;padding:0 10px" title="Modo seguro">${S.settings.safe ? '🛡️ ON' : '🛡️ OFF'}</button>
+      <input class="search" id="gal-q" type="search" placeholder="🔎 Buscar…" value="${esc(galQ)}"></div>
+    <div class="chips" id="gal-folders">${[['', '🖼️', 'Todas', vis.length]].concat(S.folders.map(f => [f.id, f.ic, f.name, vis.filter(a => a.folder === f.id).length])).map(([id, ic, n, c]) => `<button class="chip${galFolder === id ? ' on' : ''}" data-f="${esc(id)}">${ic} ${esc(n)} <em>${c}</em></button>`).join('')}<button class="chip new" id="f-new">＋ Pasta</button>${galFolder ? '<button class="chip" id="f-edit">⋯</button>' : ''}</div>
+    <div class="${selecting ? 'selecting' : ''}" id="gal-wrap"></div>`;
+  $$('[data-gm]', m).forEach(b => b.onclick = () => { galMode = b.dataset.gm; render(); });
+  $('#safe-btn', m).onclick = toggleSafe;
+  let t = 0; $('#gal-q', m).oninput = e => { galQ = e.target.value; clearTimeout(t); t = setTimeout(() => drawGrid(), 150); };
+  $$('[data-f]', m).forEach(b => b.onclick = () => { galFolder = b.dataset.f; render(); });
+  $('#f-new', m).onclick = async () => { const n = await askText('Nova pasta', '', 'ex.: 🐉 Fanarts'); if (!n) return; const mm = n.match(/^(\p{Extended_Pictographic}️?)\s*(.+)$/u); S.folders.push({ id: uid('f'), ic: mm ? mm[1] : '📁', name: mm ? mm[2] : n }); save(); render(); };
+  if ($('#f-edit', m)) $('#f-edit', m).onclick = () => folderMenu(galFolder);
+  drawGrid();
+}
+async function drawGrid() {
+  const wrap = $('#gal-wrap'); if (!wrap) return;
+  const list = galList();
+  if (!list.length) { wrap.innerHTML = `<div class="empty">${galMode === 'nsfw' ? '🔞 Nenhuma arte +18 ainda.<br>Segure uma arte e toque em <b>🔞 +18</b>, ou marque nas informações dela.' : S.arts.length ? 'Nada por aqui com esse filtro.' : '<b>Sua galeria está vazia</b><br>Toque em ＋ para adicionar artes do celular.'}</div>`; return; }
+  wrap.innerHTML = `<div class="grid">${list.map(a => `<div class="tile${sel.has(a.id) ? ' sel' : ''}" data-id="${a.id}"><img alt="" data-k="${a.id}:t">${a.nsfw ? '<span class="tg">18+</span>' : ''}<span class="ck"></span></div>`).join('')}</div>`;
+  for (const im of $$('img[data-k]', wrap)) blobURL(im.dataset.k).then(u => { if (u) im.src = u; });
+  $$('.tile', wrap).forEach(tile => {
+    const id = tile.dataset.id; let lp = 0, moved = false;
+    tile.addEventListener('pointerdown', () => { moved = false; lp = setTimeout(() => { lp = -1; if (!selecting) { selecting = true; sel.add(id); render(); if (navigator.vibrate) navigator.vibrate(15); } }, 480); });
+    tile.addEventListener('pointermove', () => { moved = true; });
+    const cancel = () => { if (lp > 0) clearTimeout(lp); };
+    tile.addEventListener('pointerup', cancel); tile.addEventListener('pointercancel', () => { cancel(); lp = 0; });
+    tile.addEventListener('contextmenu', e => e.preventDefault());
+    tile.onclick = () => {
+      if (lp === -1) { lp = 0; return; }
+      if (selecting) { sel.has(id) ? sel.delete(id) : sel.add(id); tile.classList.toggle('sel', sel.has(id)); updSelBar(); return; }
+      openViewer(id, list.map(a => a.id));
+    };
+  });
+  updSelBar();
+}
+function updSelBar() {
+  let bar = $('#selbar');
+  if (!selecting) { if (bar) bar.remove(); return; }
+  if (!bar) { bar = document.createElement('div'); bar.id = 'selbar'; bar.className = 'selbar'; document.body.appendChild(bar); }
+  bar.innerHTML = `<button class="btn" data-s="x">✕ ${sel.size}</button><button class="btn" data-s="all">Todas</button>${sel.size === 2 ? '<button class="btn primary" data-s="cmp">⚖️ Comparar</button>' : ''}<button class="btn" data-s="move" ${sel.size ? '' : 'disabled'}>📂 Mover</button><button class="btn" data-s="nsfw" ${sel.size ? '' : 'disabled'}>🔞 +18</button><button class="btn" data-s="sfw" ${sel.size ? '' : 'disabled'}>🟢 Livre</button><button class="btn danger" data-s="del" ${sel.size ? '' : 'disabled'}>🗑️</button>`;
+  bar.querySelectorAll('[data-s]').forEach(b => b.onclick = async () => {
+    const a = b.dataset.s, items = S.arts.filter(x => sel.has(x.id));
+    if (a === 'x') { selecting = false; sel.clear(); render(); return; }
+    if (a === 'all') { galList().forEach(x => sel.add(x.id)); drawGrid(); return; }
+    if (a === 'cmp') { const [x, y] = S.arts.filter(z => sel.has(z.id)); return openCompare(x.id + ':o', y.id + ':o', x.title || 'A', y.title || 'B', 'Comparar artes'); }
+    if (a === 'nsfw' || a === 'sfw') { items.forEach(x => x.nsfw = a === 'nsfw'); save(); toast(`${items.length} arte(s) marcadas como ${a === 'nsfw' ? '+18' : 'livres'}`); }
+    if (a === 'move') { const f = await pickFolder(); if (f === null) return; items.forEach(x => x.folder = f); save(); toast(`${items.length} arte(s) movidas`); }
+    if (a === 'del') { if (!await ask(`Apagar ${items.length} arte(s)?`, 'Elas saem do Criatura Light deste aparelho. As fotos originais da galeria do celular não são apagadas.', 'Apagar', true)) return; for (const x of items) await delArt(x); toast('🗑️ Apagadas'); }
+    selecting = false; sel.clear(); render();
+  });
+}
+function pickFolder() {
+  return new Promise(res => {
+    let done = false; const fin = v => { if (done) return; done = true; res(v); };
+    openSheet(`<h2>Mover para…</h2><div class="list" style="margin-top:10px">${[['', '🖼️', 'Sem pasta']].concat(S.folders.map(f => [f.id, f.ic, f.name])).map(([id, ic, n]) => `<button class="btn" style="justify-content:flex-start" data-pf="${esc(id)}">${ic} ${esc(n)}</button>`).join('')}<button class="btn ghost" data-pf="__new">＋ Nova pasta…</button></div>`,
+      sh => sh.querySelectorAll('[data-pf]').forEach(b => b.onclick = async () => {
+        let v = b.dataset.pf;
+        if (v === '__new') { closeSheet(); const n = await askText('Nova pasta', '', 'ex.: 🐉 Fanarts'); if (!n) return fin(null); const mm = n.match(/^(\p{Extended_Pictographic}️?)\s*(.+)$/u); v = uid('f'); S.folders.push({ id: v, ic: mm ? mm[1] : '📁', name: mm ? mm[2] : n }); return fin(v); }
+        fin(v); closeSheet();
+      }), () => fin(null));
+  });
+}
+async function folderMenu(id) {
+  const f = S.folders.find(x => x.id === id); if (!f) return;
+  openSheet(`<h2>${esc(f.ic + ' ' + f.name)}</h2><div class="list" style="margin-top:10px"><button class="btn" data-a="ren">✏️ Renomear</button><button class="btn danger" data-a="del">🗑️ Apagar pasta (as artes ficam)</button></div>`, sh => {
+    sh.querySelector('[data-a=ren]').onclick = async () => { closeSheet(); const n = await askText('Renomear pasta', f.ic + ' ' + f.name); if (!n) return; const mm = n.match(/^(\p{Extended_Pictographic}️?)\s*(.+)$/u); f.ic = mm ? mm[1] : '📁'; f.name = mm ? mm[2] : n; save(); render(); };
+    sh.querySelector('[data-a=del]').onclick = () => { S.arts.forEach(a => { if (a.folder === id) a.folder = ''; }); S.folders = S.folders.filter(x => x.id !== id); galFolder = ''; save(); closeSheet(); render(); };
+  });
+}
+async function delArt(a) {
+  S.arts = S.arts.filter(x => x !== a);
+  for (const k of [a.id + ':o', a.id + ':t']) { dropURL(k); await blobDel(k); }
+  save();
+}
+/* visualizador (artes da galeria, ou versões de um rascunho) */
+let vIds = [], vIdx = 0, vPhotos = null;
+async function openViewer(id, ids) {
+  vPhotos = null; $('#v-edit').style.display = '';
+  vIds = ids; vIdx = Math.max(0, ids.indexOf(id)); $('#viewer').classList.add('open'); document.body.style.overflow = 'hidden'; await showV();
+}
+async function openPhotos(keys, idx, title) {
+  vPhotos = { title }; $('#v-edit').style.display = 'none'; $('#viewer').classList.add('top');
+  vIds = keys; vIdx = idx; $('#viewer').classList.add('open'); document.body.style.overflow = 'hidden'; await showV();
+}
+async function showV() {
+  if (vPhotos) { $('#v-title').textContent = `${vPhotos.title} · versão ${vIdx + 1}`; $('#v-pos').textContent = `${vIdx + 1}/${vIds.length}`; $('#v-stage').classList.remove('zoom'); $('#v-img').src = await blobURL(vIds[vIdx]); return; }
+  const a = S.arts.find(x => x.id === vIds[vIdx]); if (!a) return closeViewer();
+  $('#v-title').textContent = a.title || '';
+  $('#v-pos').textContent = `${vIdx + 1}/${vIds.length}`;
+  $('#v-stage').classList.remove('zoom');
+  const img = $('#v-img'); img.src = await blobURL(a.id + ':t');
+  blobURL(a.id + ':o').then(u => { if (u && vIds[vIdx] === a.id) img.src = u; });
+}
+function closeViewer() { $('#viewer').classList.remove('open', 'top'); document.body.style.overflow = ''; [...urlCache.keys()].filter(k => k.endsWith(':o')).forEach(dropURL); vPhotos = null; }
+$('#v-close').onclick = closeViewer;
+$('#v-prev').onclick = () => { if (vIdx > 0) { vIdx--; showV(); } };
+$('#v-next').onclick = () => { if (vIdx < vIds.length - 1) { vIdx++; showV(); } };
+$('#v-stage').ondblclick = () => $('#v-stage').classList.toggle('zoom');
+{ let x0 = null, y0 = 0; const st = $('#v-stage');
+  st.addEventListener('touchstart', e => { if (e.touches.length === 1 && !st.classList.contains('zoom')) { x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; } else x0 = null; }, { passive: true });
+  st.addEventListener('touchend', e => { if (x0 == null) return; const dx = e.changedTouches[0].clientX - x0, dy = e.changedTouches[0].clientY - y0; x0 = null;
+    if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) (dx < 0 ? $('#v-next') : $('#v-prev')).click(); else if (dy > 110 && Math.abs(dy) > Math.abs(dx) * 1.5) closeViewer(); }, { passive: true }); }
+document.addEventListener('keydown', e => { if (!$('#viewer').classList.contains('open')) { if (e.key === 'Escape' && $('#sheet').classList.contains('open')) closeSheet(); return; } if (e.key === 'ArrowLeft') $('#v-prev').click(); if (e.key === 'ArrowRight') $('#v-next').click(); if (e.key === 'Escape') closeViewer(); });
+$('#v-share').onclick = async () => {
+  const a = vPhotos ? { id: '', title: vPhotos.title } : S.arts.find(x => x.id === vIds[vIdx]); if (!a) return;
+  const b = await blobGet(vPhotos ? vIds[vIdx] : a.id + ':o'); if (!b) return;
+  const file = new File([b], (a.title || 'arte') + '.' + ((b.type.split('/')[1] || 'png').replace('jpeg', 'jpg')), { type: b.type || 'image/png' });
+  if (navigator.canShare && navigator.canShare({ files: [file] })) { try { await navigator.share({ files: [file], title: a.title }); } catch (e) {} }
+  else { const l = document.createElement('a'); l.href = URL.createObjectURL(file); l.download = file.name; l.click(); setTimeout(() => URL.revokeObjectURL(l.href), 4000); }
+};
+$('#v-edit').onclick = () => { const a = S.arts.find(x => x.id === vIds[vIdx]); if (a) editArt(a); };
+function editArt(a) {
+  openSheet(`<h2>✏️ Informações da arte</h2>
+    <label class="f">Título</label><input id="a-t" value="${esc(a.title)}">
+    <label class="f">Pasta</label><select id="a-f"><option value="">Sem pasta</option>${S.folders.map(f => `<option value="${esc(f.id)}"${a.folder === f.id ? ' selected' : ''}>${esc(f.ic + ' ' + f.name)}</option>`).join('')}</select>
+    <div class="switch"><span>🔞 Arte +18 (NSFW)</span><input type="checkbox" id="a-n" ${a.nsfw ? 'checked' : ''}></div>
+    <label class="f">Tags (separe por vírgula)</label><input id="a-tags" value="${esc((a.tags || []).join(', '))}">
+    <label class="f">Cliente</label><select id="a-c"><option value="">—</option>${S.clients.map(c => `<option value="${esc(c.id)}"${a.clientId === c.id ? ' selected' : ''}>${esc(c.name)}</option>`).join('')}</select>
+    <label class="f">Data da arte</label><input id="a-d" type="date" value="${esc(a.date || '')}">
+    <label class="f">Notas</label><textarea id="a-no">${esc(a.notes || '')}</textarea>
+    <div class="actions"><button class="btn danger" data-a="del">🗑️</button><button class="btn ghost" data-a="no">Cancelar</button><button class="btn primary" data-a="ok">Salvar</button></div>`, sh => {
+    sh.querySelector('[data-a=no]').onclick = closeSheet;
+    sh.querySelector('[data-a=ok]').onclick = () => {
+      Object.assign(a, { title: $('#a-t').value.trim(), folder: $('#a-f').value, nsfw: $('#a-n').checked, tags: $('#a-tags').value.split(',').map(x => x.trim()).filter(Boolean), clientId: $('#a-c').value, date: $('#a-d').value, notes: $('#a-no').value });
+      save(); closeSheet(); if ($('#viewer').classList.contains('open')) showV(); render(); toast('✅ Salvo');
+    };
+    sh.querySelector('[data-a=del]').onclick = async () => { closeSheet(); if (!await ask('Apagar esta arte?', 'Ela sai do Criatura Light deste aparelho.', 'Apagar', true)) return; await delArt(a); vIds = vIds.filter(x => x !== a.id); if (vIdx >= vIds.length) vIdx = vIds.length - 1; if (vIds.length) showV(); else closeViewer(); render(); };
+  });
+}
+
+/* 🛡️ modo seguro: esconde tudo que é +18 (galeria e rascunhos). Com PIN, só desliga quem souber. */
+async function pinHash(pin) {
+  const txt = 'criatura-light:' + pin;
+  try { const d = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(txt)); return [...new Uint8Array(d)].map(b => b.toString(16).padStart(2, '0')).join(''); }
+  catch (e) { let h = 2166136261; for (let i = 0; i < txt.length; i++) { h ^= txt.charCodeAt(i); h = Math.imul(h, 16777619); } return 'f' + (h >>> 0).toString(16); }
+}
+function askPin(title) {
+  return new Promise(res => {
+    let done = false; const fin = v => { if (done) return; done = true; res(v); };
+    openSheet(`<h2>${esc(title)}</h2><input id="pin-in" type="password" inputmode="numeric" autocomplete="off" placeholder="PIN"><div class="actions"><button class="btn ghost" data-a="no">Cancelar</button><button class="btn primary" data-a="ok">OK</button></div>`,
+      sh => { const i = sh.querySelector('#pin-in'); setTimeout(() => i.focus(), 250); const ok = () => { fin(i.value.trim()); closeSheet(); };
+        i.onkeydown = e => { if (e.key === 'Enter') ok(); }; sh.querySelector('[data-a=no]').onclick = () => { fin(null); closeSheet(); }; sh.querySelector('[data-a=ok]').onclick = ok; }, () => fin(null));
+  });
+}
+async function toggleSafe() {
+  const st = S.settings;
+  if (!st.safe) { st.safe = true; save(false); render(); return toast('🛡️ Modo seguro ligado — artes +18 escondidas'); }
+  if (st.safePin) { const p = await askPin('🔒 PIN para desligar o modo seguro'); if (p == null) return render(); if (await pinHash(p) !== st.safePin) { render(); return toast('PIN errado'); } }
+  st.safe = false; save(false); render(); toast('🔓 Modo seguro desligado');
+}
+
+/* =====================================================================
+   👥 TRABALHOS & CLIENTES
+   ===================================================================== */
+const STATUS = [['fila', '⏳ Na fila'], ['andamento', '✏️ Em andamento'], ['cliente', '💬 Esperando cliente'], ['entregue', '✅ Entregue'], ['cancelado', '✖️ Cancelado']];
+const stLabel = k => (STATUS.find(s => s[0] === k) || STATUS[0])[1];
+let jobsView = 'works', jobsQ = '';
+const workDue = w => Math.max(0, (Number(w.price) || 0) - (Number(w.paid) || 0));
+function payBadge(w) {
+  if (w.status === 'cancelado') return '';
+  const p = Number(w.paid) || 0, t = Number(w.price) || 0;
+  if (t && p >= t) return '<span class="badge paid">Pago</span>';
+  if (p > 0) return `<span class="badge part money">Recebido ${money(p, w.cur)}</span>`;
+  return t ? '<span class="badge">A receber</span>' : '';
+}
+function dueBadge(w) {
+  if (!w.deadline || w.status === 'entregue' || w.status === 'cancelado') return '';
+  const d = daysTo(w.deadline);
+  if (d < 0) return `<span class="badge late">Atrasado ${-d}d</span>`;
+  if (d === 0) return '<span class="badge late">Entrega hoje</span>';
+  if (d <= 3) return `<span class="badge soon">Faltam ${d}d</span>`;
+  return `<span class="badge">até ${fmtDate(w.deadline)}</span>`;
+}
+function renderJobs(m) {
+  m.innerHTML = `<div class="toolbar"><div class="seg"><button data-jv="works" class="${jobsView === 'works' ? 'on' : ''}">💼 Trabalhos</button><button data-jv="clients" class="${jobsView === 'clients' ? 'on' : ''}">👥 Clientes</button></div><input class="search" id="j-q" type="search" placeholder="🔎 Buscar…" value="${esc(jobsQ)}"></div><div id="j-list"></div>`;
+  $$('[data-jv]', m).forEach(b => b.onclick = () => { jobsView = b.dataset.jv; render(); });
+  let t = 0; $('#j-q', m).oninput = e => { jobsQ = e.target.value; clearTimeout(t); t = setTimeout(drawJobs, 150); };
+  drawJobs();
+}
+function drawJobs() {
+  const box = $('#j-list'); if (!box) return;
+  const q = norm(jobsQ), cname = id => (S.clients.find(c => c.id === id) || {}).name || '';
+  if (jobsView === 'clients') {
+    $('#h-sub').textContent = `${S.clients.length} cliente(s)`;
+    const list = S.clients.filter(c => !q || norm([c.name, c.handle, c.contact, c.notes].join(' ')).includes(q)).sort((a, b) => a.name.localeCompare(b.name, 'pt'));
+    box.innerHTML = list.length ? `<div class="list">${list.map(c => { const ws = S.works.filter(w => w.clientId === c.id); const open = ws.filter(w => !['entregue', 'cancelado'].includes(w.status)).length;
+      return `<div class="card tap" data-c="${c.id}"><div class="t"><span class="grow">${esc(c.name)}</span>${open ? `<span class="badge part">${open} em aberto</span>` : ''}</div><div class="s">${c.handle ? `<span>${esc(c.handle)}</span>` : ''}${c.contact ? `<span>${esc(c.contact)}</span>` : ''}<span>${ws.length} trabalho(s)</span></div></div>`; }).join('')}</div>`
+      : `<div class="empty">${S.clients.length ? 'Ninguém com essa busca.' : '<b>Nenhum cliente ainda</b><br>Toque em ＋ para cadastrar.'}</div>`;
+    $$('[data-c]', box).forEach(el => el.onclick = () => editClient(S.clients.find(c => c.id === el.dataset.c)));
+    return;
+  }
+  const open = S.works.filter(w => !['entregue', 'cancelado'].includes(w.status)).length;
+  $('#h-sub').textContent = `${open} em aberto · ${S.works.length} no total`;
+  const list = S.works.filter(w => !q || norm([w.title, cname(w.clientId), w.notes].join(' ')).includes(q));
+  if (!list.length) { box.innerHTML = `<div class="empty">${S.works.length ? 'Nada com essa busca.' : '<b>Nenhum trabalho ainda</b><br>Toque em ＋ para registrar uma comissão.'}</div>`; return; }
+  box.innerHTML = STATUS.map(([k, l]) => {
+    const ws = list.filter(w => (w.status || 'fila') === k).sort((a, b) => (a.deadline || '9999').localeCompare(b.deadline || '9999'));
+    if (!ws.length) return '';
+    return `<div class="group-h">${l} <em>${ws.length}</em></div><div class="list">${ws.map(w => `<div class="card tap" data-w="${w.id}"><div class="t"><span class="grow">${esc(w.title || 'Sem título')}</span><span class="money" style="font-weight:800">${w.price ? money(w.price, w.cur) : ''}</span></div>
+      <div class="s">${cname(w.clientId) ? `<span>👤 ${esc(cname(w.clientId))}</span>` : ''}${dueBadge(w)}${payBadge(w)}</div></div>`).join('')}</div>`;
+  }).join('');
+  $$('[data-w]', box).forEach(el => el.onclick = () => editWork(S.works.find(w => w.id === el.dataset.w)));
+}
+function editClient(c) {
+  const isNew = !c; c = c || { id: uid('c'), name: '', handle: '', contact: '', notes: '' };
+  const ws = S.works.filter(w => w.clientId === c.id);
+  openSheet(`<h2>${isNew ? '👤 Novo cliente' : '👤 ' + esc(c.name)}</h2>
+    <label class="f">Nome</label><input id="c-n" value="${esc(c.name)}" placeholder="Nome ou apelido">
+    <label class="f">@ / rede</label><input id="c-h" value="${esc(c.handle)}" placeholder="@cliente no Instagram, X…">
+    <label class="f">Contato</label><input id="c-ct" value="${esc(c.contact)}" placeholder="WhatsApp, e-mail…">
+    <label class="f">Notas</label><textarea id="c-no" placeholder="Preferências, combinados…">${esc(c.notes)}</textarea>
+    ${ws.length ? `<label class="f">Trabalhos (${ws.length})</label><div class="list">${ws.map(w => `<div class="card"><div class="t"><span class="grow">${esc(w.title)}</span><span class="badge">${stLabel(w.status)}</span></div></div>`).join('')}</div>` : ''}
+    <div class="actions">${isNew ? '' : '<button class="btn danger" data-a="del">🗑️</button>'}<button class="btn ghost" data-a="no">Cancelar</button><button class="btn primary" data-a="ok">Salvar</button></div>`, sh => {
+    sh.querySelector('[data-a=no]').onclick = closeSheet;
+    sh.querySelector('[data-a=ok]').onclick = () => {
+      const name = $('#c-n').value.trim(); if (!name) return toast('Dê um nome ao cliente');
+      Object.assign(c, { name, handle: $('#c-h').value.trim(), contact: $('#c-ct').value.trim(), notes: $('#c-no').value });
+      if (isNew) S.clients.push(c); save(); closeSheet(); render(); toast('✅ Cliente salvo');
+    };
+    const d = sh.querySelector('[data-a=del]'); if (d) d.onclick = async () => { closeSheet(); if (!await ask(`Apagar ${c.name}?`, ws.length ? `Os ${ws.length} trabalho(s) ficam, só sem cliente.` : '', 'Apagar', true)) return; S.clients = S.clients.filter(x => x !== c); S.works.forEach(w => { if (w.clientId === c.id) w.clientId = ''; }); save(); render(); };
+  });
+}
+function editWork(w) {
+  const isNew = !w; w = w || { id: uid('w'), title: '', clientId: '', status: 'fila', price: '', cur: S.settings.currency, paid: 0, deadline: '', ordered: today(), notes: '' };
+  openSheet(`<h2>${isNew ? '💼 Novo trabalho' : '💼 ' + esc(w.title || 'Trabalho')}</h2>
+    <label class="f">O que é</label><input id="w-t" value="${esc(w.title)}" placeholder="ex.: Retrato meio corpo">
+    <label class="f">Cliente</label><div class="row"><select id="w-c"><option value="">—</option>${S.clients.slice().sort((a, b) => a.name.localeCompare(b.name, 'pt')).map(c => `<option value="${esc(c.id)}"${w.clientId === c.id ? ' selected' : ''}>${esc(c.name)}</option>`).join('')}</select><button class="btn" id="w-nc" style="flex:0 0 auto">＋ Novo</button></div>
+    <label class="f">Status</label>${optsHtml('st', STATUS, w.status || 'fila')}
+    <label class="f">Valor</label><div class="row"><input id="w-p" type="number" inputmode="decimal" step="0.01" value="${esc(w.price)}" placeholder="0,00">${optsHtml('cur', [['BRL', 'R$'], ['USD', 'US$']], w.cur || 'BRL').replace('class="opts"', 'class="opts" style="flex:0 0 auto"')}</div>
+    <label class="f">Já recebido</label><div class="row"><input id="w-pd" type="number" inputmode="decimal" step="0.01" value="${esc(w.paid || '')}" placeholder="0,00"><button class="btn" id="w-half" style="flex:0 0 auto">Sinal 50%</button><button class="btn" id="w-full" style="flex:0 0 auto">Tudo</button></div>
+    <small class="muted">Quando o valor recebido aumenta, entra sozinho como ganho no 💰 Financeiro.</small>
+    <div class="row"><div><label class="f">Pedido em</label><input id="w-o" type="date" value="${esc(w.ordered || '')}"></div><div><label class="f">Prazo</label><input id="w-d" type="date" value="${esc(w.deadline || '')}"></div></div>
+    <label class="f">Notas</label><textarea id="w-no" placeholder="Referências, detalhes, combinados…">${esc(w.notes || '')}</textarea>
+    <div class="actions">${isNew ? '' : '<button class="btn danger" data-a="del">🗑️</button>'}<button class="btn ghost" data-a="no">Cancelar</button><button class="btn primary" data-a="ok">Salvar</button></div>`, sh => {
+    bindOpts(sh, 'st', () => {}); bindOpts(sh, 'cur', () => {});
+    sh.querySelector('#w-half').onclick = () => { const p = Number($('#w-p').value) || 0; $('#w-pd').value = (p / 2).toFixed(2); };
+    sh.querySelector('#w-full').onclick = () => { $('#w-pd').value = $('#w-p').value; };
+    sh.querySelector('#w-nc').onclick = async () => {
+      const n = await askText('Novo cliente', '', 'Nome'); if (!n) return editWork(isNew ? null : w);
+      const c = { id: uid('c'), name: n, handle: '', contact: '', notes: '' }; S.clients.push(c); save(); w.clientId = c.id; editWork(isNew ? Object.assign({}, w, { _draft: true }) : w);
+    };
+    sh.querySelector('[data-a=no]').onclick = closeSheet;
+    sh.querySelector('[data-a=ok]').onclick = () => {
+      const before = Number(w.paid) || 0;
+      Object.assign(w, { title: $('#w-t').value.trim(), clientId: $('#w-c').value, status: optVal(sh, 'st') || 'fila', price: $('#w-p').value === '' ? '' : Number($('#w-p').value), cur: optVal(sh, 'cur') || 'BRL', paid: Number($('#w-pd').value) || 0, ordered: $('#w-o').value, deadline: $('#w-d').value, notes: $('#w-no').value });
+      delete w._draft;
+      if (!w.title) return toast('Escreva o que é o trabalho');
+      if (!S.works.includes(w)) S.works.push(w);
+      const diff = Math.round(((Number(w.paid) || 0) - before) * 100) / 100;
+      if (diff > 0) { S.fin.push({ id: uid('t'), type: 'ganho', amount: diff, cur: w.cur, desc: w.title, cat: 'Comissão', acc: '', date: today(), workId: w.id }); toast(`✅ Salvo · ${money(diff, w.cur)} entrou no Financeiro`); }
+      else toast('✅ Trabalho salvo');
+      save(); closeSheet(); render();
+    };
+    const d = sh.querySelector('[data-a=del]'); if (d) d.onclick = async () => { closeSheet(); if (!await ask('Apagar este trabalho?', 'O que já entrou no Financeiro continua lá.', 'Apagar', true)) return; S.works = S.works.filter(x => x !== w); save(); render(); };
+  });
+}
+
+/* =====================================================================
+   💰 FINANCEIRO
+   ===================================================================== */
+let finMonth = today().slice(0, 7), finView = 'mes', fxBusy = false;
+const fxRate = () => Number(S.settings.fx.rate) || 0;
+async function fxUpdate(quiet) {
+  if (fxBusy || !navigator.onLine) { if (!quiet) toast('Sem internet — dá pra digitar a cotação à mão'); return; }
+  fxBusy = true;
+  try {
+    const r = await fetch('https://open.er-api.com/v6/latest/USD', { cache: 'no-store' }); const j = await r.json();
+    const v = j && j.rates && j.rates.BRL; if (!v) throw new Error('sem cotação');
+    S.settings.fx.rate = Math.round(v * 10000) / 10000; S.settings.fx.at = Date.now(); S.settings.fx.manual = false; save(false);
+    if (!quiet) toast(`💱 US$ 1 = ${money(S.settings.fx.rate)}`);
+    if (tab === 'fin') render();
+  } catch (e) { if (!quiet) toast('Não consegui atualizar agora — dá pra digitar a cotação à mão'); }
+  finally { fxBusy = false; }
+}
+function renderFx(m) {
+  const fx = S.settings.fx, rate = fxRate(), fee = Number(fx.fee) || 0;
+  const when = fx.at ? new Date(fx.at).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '';
+  const net = usd => usd * rate * (1 - fee / 100);
+  const bx = document.createElement('div'); m.appendChild(bx);
+  bx.innerHTML = `<div class="card" style="margin-bottom:10px"><div class="k muted" style="font-size:12px;font-weight:650">Cotação do dólar</div>
+      <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-top:4px"><b style="font-size:24px">US$ 1 = ${money(rate)}</b><small class="muted">${fx.manual ? '✏️ digitada à mão' : when ? 'atualizada ' + when : ''}</small></div>
+      <div class="row" style="margin-top:10px"><button class="btn" id="fx-up">🔄 Atualizar</button><button class="btn" id="fx-man">✏️ Digitar</button></div></div>
+    <div class="card" style="margin-bottom:10px"><div class="k muted" style="font-size:12px;font-weight:650">Converter</div>
+      <div class="row" style="margin-top:8px"><input id="fx-in" type="number" inputmode="decimal" step="0.01" placeholder="Valor">${optsHtml('fxd', [['u2b', 'US$ → R$'], ['b2u', 'R$ → US$']], fx.dir || 'u2b').replace('class="opts"', 'class="opts" style="flex:0 0 auto"')}</div>
+      <div id="fx-out" style="font-size:22px;font-weight:800;margin-top:10px;min-height:30px"></div>
+      <label class="f">Taxa do PayPal / conversão (%)</label><input id="fx-fee" type="number" inputmode="decimal" step="0.1" value="${fee || ''}" placeholder="0 — ex.: 6,4"><small class="muted">Desconta a taxa no “você recebe”.</small></div>
+    <div class="group-h">Tabelinha (já com a taxa)</div>
+    <div class="card"><div class="bars">${[10, 20, 30, 50, 80, 100, 150, 200, 300].map(u => `<div class="bar" style="grid-template-columns:80px 1fr auto"><span>US$ ${u}</span><span></span><b class="money">${money(net(u))}</b></div>`).join('')}</div></div>`;
+  const out = () => { const v = Number($('#fx-in').value) || 0, d = optVal(m, 'fxd') || 'u2b', f = Number($('#fx-fee').value) || 0;
+    $('#fx-out').innerHTML = !v ? '<span class="muted" style="font-size:14px;font-weight:500">Digite um valor</span>' : d === 'u2b' ? `${money(v * rate)}${f ? ` <small class="muted" style="font-size:13px">· você recebe ~ <b class="money">${money(v * rate * (1 - f / 100))}</b></small>` : ''}` : money(rate ? v / rate : 0, 'USD'); };
+  $('#fx-in').oninput = out; bindOpts(m, 'fxd', v => { fx.dir = v; save(false); out(); }); out();
+  $('#fx-fee').onchange = e => { fx.fee = Number(e.target.value) || 0; save(false); render(); };
+  $('#fx-up').onclick = () => fxUpdate(false);
+  $('#fx-man').onclick = async () => { const v = await askText('US$ 1 vale quantos R$?', String(rate).replace('.', ','), 'ex.: 5,42'); if (!v) return; const n = Number(v.replace(',', '.')); if (!n) return toast('Valor inválido'); fx.rate = n; fx.manual = true; fx.at = Date.now(); save(false); render(); };
+}
+const CAT_IC = { 'Comissão': '🎨', 'Venda': '🛍️', 'Material': '🖌️', 'Comida': '🍜', 'Contas': '🧾', 'Mimos': '🎁', 'Outros': '•' };
+function renderFin(m) {
+  m.innerHTML = `<div class="toolbar"><div class="seg"><button data-fv="mes" class="${finView === 'mes' ? 'on' : ''}">💰 Mês</button><button data-fv="cambio" class="${finView === 'cambio' ? 'on' : ''}">💱 Câmbio</button></div></div>`;
+  $$('[data-fv]', m).forEach(b => b.onclick = () => { finView = b.dataset.fv; render(); });
+  $('#fab').style.display = finView === 'cambio' ? 'none' : '';
+  $('#h-sub').innerHTML = `<button class="btn ghost" id="fin-eye" style="min-height:28px;padding:0 8px;font-size:12px">${S.settings.hideMoney ? '🙈 Valores escondidos' : '👁️ Esconder valores'}</button>`;
+  $('#fin-eye').onclick = () => { S.settings.hideMoney = !S.settings.hideMoney; save(false); render(); };
+  if (finView === 'cambio') { if (!S.settings.fx.at || (!S.settings.fx.manual && Date.now() - S.settings.fx.at > 6 * 36e5)) fxUpdate(true); return renderFx(m); }
+  const box = document.createElement('div'); m.appendChild(box); renderFinMonth(box);
+}
+function renderFinMonth(m) {
+  const [y, mo] = finMonth.split('-').map(Number);
+  const label = (l => l.charAt(0).toUpperCase() + l.slice(1))(new Date(y, mo - 1, 1).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' }));
+  const tx = S.fin.filter(t => (t.date || '').startsWith(finMonth));
+  const sumBy = (type, cur) => tx.filter(t => t.type === type && (t.cur || 'BRL') === cur).reduce((s, t) => s + (Number(t.amount) || 0), 0);
+  const curs = [...new Set(['BRL'].concat(S.fin.map(t => t.cur || 'BRL'), S.works.map(w => w.cur || 'BRL')))];
+  const toRecv = cur => S.works.filter(w => w.status !== 'cancelado' && (w.cur || 'BRL') === cur).reduce((s, w) => s + workDue(w), 0);
+  const usdG = sumBy('ganho', 'USD'), usdR = toRecv('USD'), rate = fxRate();
+  m.innerHTML = `<div class="month"><button class="btn" id="m-prev">‹</button><b>${esc(label)}</b><button class="btn" id="m-next">›</button></div>
+    ${curs.map(cur => { const g = sumBy('ganho', cur), s = sumBy('gasto', cur), r = toRecv(cur); if (cur !== 'BRL' && !g && !s && !r) return '';
+      return `<div class="sum" style="margin-bottom:8px"><div class="card"><div class="k">Recebido${cur !== 'BRL' ? ' (US$)' : ''}</div><div class="v pos money">${money(g, cur)}</div></div><div class="card"><div class="k">Gastos</div><div class="v neg money">${money(s, cur)}</div></div><div class="card"><div class="k">Saldo do mês</div><div class="v money">${money(g - s, cur)}</div></div><div class="card"><div class="k">A receber (trabalhos)</div><div class="v wait money">${money(r, cur)}</div></div></div>`; }).join('')}
+    ${(usdG || usdR) && rate ? `<div class="card" style="margin-bottom:8px;font-size:13px">💱 Somando tudo em reais (US$ 1 = ${money(rate)}): recebido <b class="money">${money(sumBy('ganho', 'BRL') + usdG * rate)}</b> · a receber <b class="money">${money(toRecv('BRL') + usdR * rate)}</b></div>` : ''}
+    <div id="fin-cats"></div><div id="fin-list"></div>`;
+  const mv = d => { const dt = new Date(y, mo - 1 + d, 1); finMonth = dt.getFullYear() + '-' + String(dt.getMonth() + 1).padStart(2, '0'); render(); };
+  $('#m-prev', m).onclick = () => mv(-1); $('#m-next', m).onclick = () => mv(1);
+  const gastos = tx.filter(t => t.type === 'gasto' && (t.cur || 'BRL') === 'BRL'), byCat = {};
+  gastos.forEach(t => byCat[t.cat || 'Outros'] = (byCat[t.cat || 'Outros'] || 0) + (Number(t.amount) || 0));
+  const mx = Math.max(1, ...Object.values(byCat));
+  if (gastos.length) $('#fin-cats', m).innerHTML = `<div class="group-h">Gastos por categoria</div><div class="card bars">${Object.entries(byCat).sort((a, b) => b[1] - a[1]).map(([c, v]) => `<div class="bar"><span>${CAT_IC[c] || '•'} ${esc(c)}</span><div class="track"><div class="fill" style="width:${(v / mx * 100).toFixed(1)}%"></div></div><span class="money">${money(v)}</span></div>`).join('')}</div>`;
+  const box = $('#fin-list', m);
+  if (!tx.length) { box.innerHTML = `<div class="empty" style="margin-top:14px">Nada registrado neste mês.<br>Toque em ＋ para anotar um ganho ou gasto.</div>`; return; }
+  const days = [...new Set(tx.map(t => t.date))].sort().reverse();
+  box.innerHTML = days.map(d => `<div class="group-h">${fmtDate(d)}</div><div class="list">${tx.filter(t => t.date === d).map(t => `<div class="card tap tx" data-t="${t.id}"><span class="ic">${CAT_IC[t.cat] || (t.type === 'ganho' ? '💚' : '💸')}</span><div class="mid"><b>${esc(t.desc || t.cat || '')}</b><small class="muted">${esc([t.cat, t.acc].filter(Boolean).join(' · '))}</small></div><span class="amt money ${t.type === 'ganho' ? 'v pos' : 'v neg'}" style="font-size:15px">${t.type === 'ganho' ? '+' : '−'} ${money(t.amount, t.cur)}</span></div>`).join('')}</div>`).join('');
+  $$('[data-t]', box).forEach(el => el.onclick = () => editTx(S.fin.find(t => t.id === el.dataset.t)));
+}
+function editTx(t) {
+  const isNew = !t; t = t || { id: uid('t'), type: 'gasto', amount: '', cur: S.settings.currency, desc: '', cat: '', acc: '', date: today() };
+  const draw = () => openSheet(`<h2>${isNew ? 'Anotar' : 'Editar'} ${t.type === 'ganho' ? 'ganho 💚' : 'gasto 💸'}</h2>
+    ${optsHtml('ty', [['gasto', '💸 Gasto'], ['ganho', '💚 Ganho']], t.type)}
+    <label class="f">Valor</label><div class="row"><input id="t-a" type="number" inputmode="decimal" step="0.01" value="${esc(t.amount)}" placeholder="0,00">${optsHtml('cur', [['BRL', 'R$'], ['USD', 'US$']], t.cur || 'BRL').replace('class="opts"', 'class="opts" style="flex:0 0 auto"')}</div>
+    <label class="f">Descrição</label><input id="t-d" value="${esc(t.desc)}" placeholder="${t.type === 'ganho' ? 'ex.: Comissão da Ana' : 'ex.: Almoço'}">
+    <label class="f">Categoria</label>${optsHtml('cat', (S.settings.cats[t.type] || []).map(c => [c, (CAT_IC[c] || '•') + ' ' + c]), t.cat)}
+    <label class="f">Conta</label>${optsHtml('acc', S.settings.accounts.map(a => [a, a]), t.acc)}
+    <label class="f">Data</label><input id="t-dt" type="date" value="${esc(t.date)}">
+    <div class="actions">${isNew ? '' : '<button class="btn danger" data-a="del">🗑️</button>'}<button class="btn ghost" data-a="no">Cancelar</button><button class="btn primary" data-a="ok">Salvar</button></div>`, sh => {
+    bindOpts(sh, 'ty', v => { t.type = v; t.amount = $('#t-a').value; t.desc = $('#t-d').value; t.date = $('#t-dt').value; t.cat = ''; draw(); });
+    bindOpts(sh, 'cur', () => {}); bindOpts(sh, 'cat', () => {}); bindOpts(sh, 'acc', () => {});
+    setTimeout(() => { if (isNew) $('#t-a').focus(); }, 260);
+    sh.querySelector('[data-a=no]').onclick = closeSheet;
+    sh.querySelector('[data-a=ok]').onclick = () => {
+      const a = Number($('#t-a').value); if (!a) return toast('Coloque o valor');
+      Object.assign(t, { amount: a, cur: optVal(sh, 'cur') || 'BRL', desc: $('#t-d').value.trim(), cat: optVal(sh, 'cat'), acc: optVal(sh, 'acc'), date: $('#t-dt').value || today() });
+      if (!S.fin.includes(t)) S.fin.push(t); finMonth = t.date.slice(0, 7); save(); closeSheet(); render(); toast('✅ Anotado');
+    };
+    const d = sh.querySelector('[data-a=del]'); if (d) d.onclick = async () => { closeSheet(); if (!await ask('Apagar este lançamento?', '', 'Apagar', true)) return; S.fin = S.fin.filter(x => x !== t); save(); render(); };
+  });
+  draw();
+}
+
+/* =====================================================================
+   💡 IDEIAS (post-its, com imagem opcional)
+   ===================================================================== */
+const NOTE_COLORS = ['#f3e3a6', '#f6c9d4', '#c9e4d4', '#cad8f2', '#ded2f3', '#e9e4dc'];
+let ideasQ = '', ideasView = 'ideas';
+function renderIdeas(m) {
+  const nd = S.drafts.filter(d => !(d.nsfw && S.settings.safe)).length;
+  $('#h-title').textContent = ideasView === 'drafts' ? '✏️ Rascunhos' : '💡 Ideias';
+  $('#h-sub').textContent = ideasView === 'drafts' ? `${nd} rascunho(s)` : `${S.notes.length} ideia(s)`;
+  m.innerHTML = `<div class="toolbar"><div class="seg"><button data-iv="ideas" class="${ideasView === 'ideas' ? 'on' : ''}">💡 Ideias</button><button data-iv="drafts" class="${ideasView === 'drafts' ? 'on' : ''}">✏️ Rascunhos</button></div><input class="search" id="i-q" type="search" placeholder="🔎 Buscar…" value="${esc(ideasQ)}"></div><div id="i-list"></div>`;
+  $$('[data-iv]', m).forEach(b => b.onclick = () => { ideasView = b.dataset.iv; render(); });
+  let t = 0; $('#i-q', m).oninput = e => { ideasQ = e.target.value; clearTimeout(t); t = setTimeout(() => ideasView === 'drafts' ? drawDrafts() : drawIdeas(), 150); };
+  ideasView === 'drafts' ? drawDrafts() : drawIdeas();
+}
+const DSTATUS = [['ideia', '💭 Ideia'], ['esboco', '✏️ Esboço'], ['andamento', '🎨 Em andamento'], ['pausado', '⏸️ Pausado']];
+const dstLabel = k => (DSTATUS.find(s => s[0] === k) || DSTATUS[1])[1];
+function drawDrafts() {
+  const box = $('#i-list'); if (!box) return;
+  const q = norm(ideasQ), list = S.drafts.filter(d => !(d.nsfw && S.settings.safe) && (!q || norm([d.title, d.notes].join(' ')).includes(q))).sort((a, b) => (b.upd || b.at) - (a.upd || a.at));
+  if (!list.length) { box.innerHTML = `<div class="empty">${S.drafts.length ? 'Nada com essa busca.' : '<b>Nenhum rascunho ainda</b><br>Toque em ＋ e escolha a imagem do esboço — depois dá pra ir adicionando as versões (a evolução do desenho).'}</div>`; return; }
+  box.innerHTML = `<div class="grid">${list.map(d => { const last = d.imgs[d.imgs.length - 1]; return `<div class="tile" data-d="${d.id}" style="aspect-ratio:auto"><div style="aspect-ratio:1">${last ? `<img alt="" data-k="${esc(last.k)}">` : ''}</div>${d.nsfw ? '<span class="tg" style="bottom:auto;top:6px">18+</span>' : ''}<div style="padding:7px 9px"><b style="display:block;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(d.title || 'Sem título')}</b><small class="muted">${dstLabel(d.status)}${d.imgs.length > 1 ? ` · ${d.imgs.length} versões` : ''}</small></div></div>`; }).join('')}</div>`;
+  for (const im of $$('img[data-k]', box)) blobURL(im.dataset.k).then(u => { if (u) im.src = u; });
+  $$('[data-d]', box).forEach(el => el.onclick = () => editDraft(S.drafts.find(d => d.id === el.dataset.d)));
+}
+async function draftAddFiles(d, files) {
+  for (const f of [...files]) { if (!/^image\//.test(f.type)) continue; const k = d.id + ':v' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5); await blobPut(k, f); d.imgs.push({ k, at: Date.now() }); }
+  d.upd = Date.now();
+}
+function editDraft(d) {
+  const isNew = !d; d = d || { id: uid('d'), title: '', status: 'esboco', nsfw: false, notes: '', imgs: [], at: Date.now() };
+  const pend = [];   // versões escolhidas antes de salvar (rascunho novo)
+  const draw = () => openSheet(`<h2>${isNew ? '✏️ Novo rascunho' : '✏️ ' + esc(d.title || 'Rascunho')}</h2>
+    <label class="f">Versões (${d.imgs.length + pend.length}) — a última é a capa</label>
+    <div class="chips" id="d-vers" style="min-height:84px">${d.imgs.map((v, i) => `<div style="position:relative;flex:0 0 auto"><img data-k="${esc(v.k)}" data-vi="${i}" alt="" style="width:76px;height:76px;object-fit:cover;border-radius:10px;border:1px solid var(--line)"><button class="btn" data-vdel="${i}" style="position:absolute;top:-6px;right:-6px;min-height:0;width:24px;height:24px;padding:0;border-radius:50%;font-size:11px">✕</button></div>`).join('')}${pend.map(f => `<img alt="" src="${URL.createObjectURL(f)}" style="width:76px;height:76px;object-fit:cover;border-radius:10px;border:1px dashed var(--accent-line);flex:0 0 auto">`).join('')}<button class="chip new" id="d-add" style="height:76px">＋ Versão</button><input type="file" id="d-file" accept="image/*" multiple hidden></div>
+    ${d.imgs.length >= 2 ? '<button class="btn" id="d-cmp" style="width:100%;margin-top:8px">⚖️ Comparar a primeira com a última versão</button>' : ''}
+    <label class="f">Nome</label><input id="d-t" value="${esc(d.title)}" placeholder="ex.: Sereia do chá">
+    <label class="f">Status</label>${optsHtml('dst', DSTATUS, d.status)}
+    <div class="switch"><span>🔞 Rascunho +18</span><input type="checkbox" id="d-n" ${d.nsfw ? 'checked' : ''}></div>
+    <label class="f">Notas</label><textarea id="d-no" placeholder="O que falta, referências…">${esc(d.notes)}</textarea>
+    ${isNew ? '' : '<button class="btn" id="d-final" style="width:100%;margin-top:12px">✅ Finalizar → vai pra 🖼️ Galeria</button>'}
+    <div class="actions">${isNew ? '' : '<button class="btn danger" data-a="del">🗑️</button>'}<button class="btn ghost" data-a="no">Cancelar</button><button class="btn primary" data-a="ok">Salvar</button></div>`, sh => {
+    for (const im of $$('img[data-k]', sh)) blobURL(im.dataset.k).then(u => { if (u) im.src = u; });
+    bindOpts(sh, 'dst', () => {});
+    const keep = () => { d.title = $('#d-t').value; d.status = optVal(sh, 'dst') || d.status; d.nsfw = $('#d-n').checked; d.notes = $('#d-no').value; };
+    sh.querySelector('#d-add').onclick = () => $('#d-file').click();
+    sh.querySelector('#d-file').onchange = async e => { keep(); const fs = [...e.target.files]; if (isNew) { pend.push(...fs); draw(); } else { await draftAddFiles(d, fs); save(); draw(); toast('➕ Versão adicionada'); } };
+    $$('[data-vi]', sh).forEach(im => im.onclick = () => openPhotos(d.imgs.map(v => v.k), +im.dataset.vi, d.title || 'Rascunho'));
+    const dc = sh.querySelector('#d-cmp'); if (dc) dc.onclick = () => openCompare(d.imgs[0].k, d.imgs[d.imgs.length - 1].k, 'Versão 1', 'Versão ' + d.imgs.length, d.title || 'Rascunho');
+    $$('[data-vdel]', sh).forEach(b => b.onclick = async () => { keep(); const v = d.imgs[+b.dataset.vdel]; if (!await ask('Tirar esta versão?', '', 'Tirar', true)) return draw(); d.imgs = d.imgs.filter(x => x !== v); dropURL(v.k); await blobDel(v.k); save(); draw(); });
+    sh.querySelector('[data-a=no]').onclick = closeSheet;
+    sh.querySelector('[data-a=ok]').onclick = async () => {
+      keep(); d.title = d.title.trim();
+      if (pend.length) await draftAddFiles(d, pend);
+      if (!d.title && !d.imgs.length) return toast('Dê um nome ou escolha uma imagem');
+      d.upd = Date.now(); if (!S.drafts.includes(d)) S.drafts.push(d); save(); closeSheet(); render(); toast('✅ Rascunho salvo');
+    };
+    const fz = sh.querySelector('#d-final'); if (fz) fz.onclick = async () => {
+      keep(); const last = d.imgs[d.imgs.length - 1]; if (!last) return toast('Coloque pelo menos uma imagem');
+      closeSheet();
+      if (!await ask('Finalizar este rascunho?', `A última versão vira uma arte na 🖼️ Galeria${d.imgs.length > 1 ? ' e as versões anteriores são apagadas' : ''}.`, 'Finalizar')) return;
+      const b = await blobGet(last.k), id = uid('art'), t = await makeThumb(b);
+      await blobPut(id + ':o', b); await blobPut(id + ':t', t.blob);
+      S.arts.unshift({ id, title: d.title || 'Arte', date: today(), added: Date.now(), w: t.w, h: t.h, nsfw: !!d.nsfw, folder: '', tags: [], notes: d.notes || '', clientId: '' });
+      for (const v of d.imgs) { dropURL(v.k); await blobDel(v.k); }
+      S.drafts = S.drafts.filter(x => x !== d); save(); render(); toast('🎉 Finalizado! Está na 🖼️ Galeria');
+    };
+    const del = sh.querySelector('[data-a=del]'); if (del) del.onclick = async () => { closeSheet(); if (!await ask('Apagar este rascunho?', 'Todas as versões dele saem do app.', 'Apagar', true)) return; for (const v of d.imgs) { dropURL(v.k); await blobDel(v.k); } S.drafts = S.drafts.filter(x => x !== d); save(); render(); };
+  });
+  draw();
+}
+function drawIdeas() {
+  const box = $('#i-list'); if (!box) return;
+  const q = norm(ideasQ), list = S.notes.filter(n => !q || norm(n.text).includes(q)).sort((a, b) => (b.pin - a.pin) || (b.at - a.at));
+  if (!list.length) { box.innerHTML = `<div class="empty">${S.notes.length ? 'Nenhuma ideia com essa busca.' : '<b>Nenhuma ideia anotada</b><br>Toque em ＋ — dá pra anotar texto e colocar uma imagem de referência.'}</div>`; return; }
+  box.innerHTML = `<div class="notes">${list.map(n => `<div class="note" data-n="${n.id}" style="background:${esc(n.color || NOTE_COLORS[0])}">${n.pin ? '<span class="pin">📌</span>' : ''}${n.img ? `<img alt="" data-k="${n.id}:img">` : ''}<p>${esc(n.text)}</p><small>${fmtDate(new Date(n.at).toISOString().slice(0, 10))}</small></div>`).join('')}</div>`;
+  for (const im of $$('img[data-k]', box)) blobURL(im.dataset.k).then(u => { if (u) im.src = u; });
+  $$('[data-n]', box).forEach(el => el.onclick = () => editNote(S.notes.find(n => n.id === el.dataset.n)));
+}
+function editNote(n) {
+  const isNew = !n; n = n || { id: uid('n'), text: '', color: NOTE_COLORS[0], pin: false, img: false, at: Date.now() };
+  let newImg = null, dropImg = false;
+  openSheet(`<h2>${isNew ? '💡 Nova ideia' : '💡 Ideia'}</h2>
+    <textarea id="n-t" placeholder="Escreva a ideia…" style="min-height:130px">${esc(n.text)}</textarea>
+    <label class="f">Cor</label><div class="swatches">${NOTE_COLORS.map(c => `<button type="button" class="sw${c === n.color ? ' on' : ''}" data-c="${c}" style="background:${c}" aria-label="cor"></button>`).join('')}</div>
+    <label class="f">Imagem de referência</label><div class="thumb-pick"><img id="n-prev" alt="" style="${n.img ? '' : 'display:none'}"><button class="btn" id="n-pick">🖼️ ${n.img ? 'Trocar' : 'Escolher'}</button><button class="btn ghost" id="n-rm" style="${n.img ? '' : 'display:none'}">Tirar</button><input type="file" accept="image/*" id="n-file" hidden></div>
+    <div class="switch"><span>📌 Fixar no topo</span><input type="checkbox" id="n-p" ${n.pin ? 'checked' : ''}></div>
+    <div class="actions">${isNew ? '' : '<button class="btn danger" data-a="del">🗑️</button>'}<button class="btn ghost" data-a="no">Cancelar</button><button class="btn primary" data-a="ok">Salvar</button></div>`, sh => {
+    if (n.img) blobURL(n.id + ':img').then(u => { $('#n-prev').src = u; });
+    sh.querySelectorAll('.sw').forEach(b => b.onclick = () => { sh.querySelectorAll('.sw').forEach(x => x.classList.toggle('on', x === b)); n._c = b.dataset.c; });
+    sh.querySelector('#n-pick').onclick = () => $('#n-file').click();
+    sh.querySelector('#n-file').onchange = async e => { const f = e.target.files[0]; if (!f) return; newImg = (await makeThumb(f, 1400)).blob; dropImg = false; const p = $('#n-prev'); p.src = URL.createObjectURL(newImg); p.style.display = ''; $('#n-rm').style.display = ''; };
+    sh.querySelector('#n-rm').onclick = () => { newImg = null; dropImg = true; $('#n-prev').style.display = 'none'; $('#n-rm').style.display = 'none'; };
+    setTimeout(() => { if (isNew) $('#n-t').focus(); }, 260);
+    sh.querySelector('[data-a=no]').onclick = closeSheet;
+    sh.querySelector('[data-a=ok]').onclick = async () => {
+      const text = $('#n-t').value; if (!text.trim() && !newImg && !n.img) return toast('Escreva algo ou escolha uma imagem');
+      n.text = text; n.pin = $('#n-p').checked; if (n._c) n.color = n._c; delete n._c; n.at = isNew ? Date.now() : n.at;
+      if (newImg) { dropURL(n.id + ':img'); await blobPut(n.id + ':img', newImg); n.img = true; }
+      else if (dropImg) { dropURL(n.id + ':img'); await blobDel(n.id + ':img'); n.img = false; }
+      if (!S.notes.includes(n)) S.notes.push(n); save(); closeSheet(); render();
+    };
+    const d = sh.querySelector('[data-a=del]'); if (d) d.onclick = async () => { closeSheet(); if (!await ask('Apagar esta ideia?', '', 'Apagar', true)) return; S.notes = S.notes.filter(x => x !== n); if (n.img) { dropURL(n.id + ':img'); await blobDel(n.id + ':img'); } save(); render(); };
+  });
+}
+
+/* =====================================================================
+   ⚙️ MAIS — perfil, aparência, backup, instalar, créditos
+   ===================================================================== */
+const BACKUP_DAYS = 7;
+const backupLate = () => { const st = S.settings; const has = S.arts.length + S.works.length + S.fin.length + S.notes.length + S.clients.length + S.drafts.length; const base = st.lastBackup || st.since || Date.now(); return !!has && st.changedAt > st.lastBackup && Date.now() - base > BACKUP_DAYS * 864e5 && Date.now() > (st.snoozeBackup || 0); };
+function updateBackupDot() { const b = $('#tabs [data-tab=more]'); let d = b.querySelector('.dot'); if (backupLate()) { if (!d) { d = document.createElement('span'); d.className = 'dot'; b.appendChild(d); } } else if (d) d.remove(); }
+let installEvt = null;
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); installEvt = e; if (tab === 'more') render(); });
+const isStandalone = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+async function renderMore(m) {
+  const st = S.settings, late = backupLate();
+  const last = st.lastBackup ? new Date(st.lastBackup).toLocaleDateString('pt-BR') : 'nunca';
+  m.innerHTML = `
+    ${late ? `<div class="notice" style="margin-bottom:12px">💾 <b>Hora do backup!</b> ${st.lastBackup ? `O último foi em ${last}.` : 'Você ainda não fez nenhum.'} Os dados ficam só neste aparelho — o backup é o que salva tudo se o celular/tablet quebrar ou for trocado.<div class="row" style="margin-top:10px"><button class="btn primary" id="bk-now2">💾 Fazer agora</button><button class="btn ghost" id="bk-later">Daqui a 2 dias</button></div></div>` : ''}
+    <div class="sect"><h3>Ferramentas</h3><div class="card tap" id="open-studio"><div class="t">🎞️ <span class="grow">Webtoon Studio</span><span class="muted">›</span></div><div class="s">Fatiar episódio pro Webtoon/Tapas · virar carrossel do Insta · capinhas no tamanho certo</div></div></div>
+    <div class="sect"><h3>Perfil</h3><div class="card">
+      <label class="f" style="margin-top:0">Seu nome</label><input id="p-n" value="${esc(S.profile.name)}" placeholder="Como você quer ser chamado(a)">
+      <label class="f">Seu @ de artista</label><input id="p-h" value="${esc(S.profile.handle)}" placeholder="@seuarroba">
+    </div></div>
+    <div class="sect"><h3>Preferências</h3><div class="card">
+      <div class="switch"><span>🛡️ Modo seguro<br><small class="muted">Esconde todas as artes e rascunhos +18 (pra mostrar o app pros outros)</small></span><input type="checkbox" id="s-safe" ${st.safe ? 'checked' : ''}></div>
+      <div class="switch"><span>🔒 PIN do modo seguro<br><small class="muted">${st.safePin ? 'Ativo — só desliga o modo seguro quem souber o PIN' : 'Sem PIN — qualquer um desliga'}</small></span><button class="btn" id="s-pin" style="flex:0 0 auto">${st.safePin ? 'Remover' : 'Criar PIN'}</button></div>
+      <div class="switch"><span>🙈 Esconder valores<br><small class="muted">Borra os valores em dinheiro (pra mostrar a tela pros outros)</small></span><input type="checkbox" id="s-hide" ${st.hideMoney ? 'checked' : ''}></div>
+      <div class="switch"><span>💱 Moeda padrão</span>${optsHtml('cur', [['BRL', 'R$'], ['USD', 'US$']], st.currency)}</div>
+      <label class="f">Contas (separe por vírgula)</label><input id="s-acc" value="${esc(st.accounts.join(', '))}">
+      <label class="f">Categorias de gasto</label><input id="s-cg" value="${esc(st.cats.gasto.join(', '))}">
+      <label class="f">Categorias de ganho</label><input id="s-cn" value="${esc(st.cats.ganho.join(', '))}">
+    </div></div>
+    <div class="sect"><h3>Backup</h3><div class="card">
+      <p style="margin:0 0 10px">Tudo fica guardado <b>só neste aparelho</b>. Faça backup de vez em quando e guarde o arquivo no Drive, iCloud ou mande pra você mesmo(a).</p>
+      <p class="muted" style="margin:0 0 12px;font-size:13px">Último backup: <b>${last}</b> · <span id="st-used">calculando espaço…</span></p>
+      <div class="row"><button class="btn primary" id="bk-now">💾 Fazer backup</button><button class="btn" id="bk-load">📂 Restaurar</button></div>
+    </div></div>
+    <div class="sect"><h3>Instalar como app</h3><div class="card">
+      ${isStandalone() ? '<p style="margin:0">✅ Já está instalado como app neste aparelho.</p>'
+        : installEvt ? '<button class="btn primary" id="inst" style="width:100%">📲 Instalar o Criatura Light</button>'
+        : isIOS() ? '<p style="margin:0">No iPhone/iPad (Safari): toque em <b>Compartilhar</b> <span style="font-size:18px">⎋</span> e depois em <b>“Adicionar à Tela de Início”</b>. Ele ganha ícone e abre em tela cheia, até sem internet.</p>'
+        : '<p style="margin:0">No Android (Chrome): toque no menu <b>⋮</b> e em <b>“Instalar app”</b> ou <b>“Adicionar à tela inicial”</b>.</p>'}
+    </div></div>
+    <div class="credits">Criatura Light ${APP_VER} — versão leve do Criatura Problemática PRO<br>Idealizado e distribuído gratuitamente por <b>@apsalvatori</b> 💜 · Proibida a venda ou revenda.</div>`;
+  const pv = () => { S.profile.name = $('#p-n').value.trim(); S.profile.handle = $('#p-h').value.trim(); save(false); };
+  $('#p-n').onchange = pv; $('#p-h').onchange = pv;
+  $('#s-safe').onchange = async e => { if (e.target.checked !== st.safe) await toggleSafe(); render(); };
+  $('#s-pin').onclick = async () => {
+    if (st.safePin) { const p = await askPin('PIN atual'); if (p == null) return render(); if (await pinHash(p) !== st.safePin) { render(); return toast('PIN errado'); } st.safePin = ''; save(false); render(); return toast('PIN removido'); }
+    const p1 = await askPin('Novo PIN (números)'); if (!p1) return render(); const p2 = await askPin('Repita o PIN'); if (p2 !== p1) { render(); return toast('Os PINs não batem'); }
+    st.safePin = await pinHash(p1); st.safe = true; save(false); render(); toast('🔒 PIN criado — modo seguro ligado');
+  };
+  $('#s-hide').onchange = e => { st.hideMoney = e.target.checked; save(false); document.body.classList.toggle('hide-money', st.hideMoney); };
+  bindOpts(m, 'cur', v => { st.currency = v; save(false); });
+  const list = v => v.split(',').map(x => x.trim()).filter(Boolean);
+  $('#s-acc').onchange = e => { st.accounts = list(e.target.value); save(false); };
+  $('#s-cg').onchange = e => { st.cats.gasto = list(e.target.value); save(false); };
+  $('#s-cn').onchange = e => { st.cats.ganho = list(e.target.value); save(false); };
+  $('#open-studio').onclick = openStudio;
+  $('#bk-now').onclick = makeBackup; if ($('#bk-now2')) $('#bk-now2').onclick = makeBackup;
+  if ($('#bk-later')) $('#bk-later').onclick = () => { st.snoozeBackup = Date.now() + 2 * 864e5; save(false); render(); };
+  $('#bk-load').onclick = () => $('#pick-backup').click();
+  if ($('#inst')) $('#inst').onclick = async () => { installEvt.prompt(); try { await installEvt.userChoice; } catch (e) {} installEvt = null; render(); };
+  try { const e = await navigator.storage.estimate(); const p = navigator.storage.persisted ? await navigator.storage.persisted() : false; const el = $('#st-used'); if (el) el.textContent = `${(e.usage / 1048576).toFixed(1).replace('.', ',')} MB usados${p ? ' · 🔒 protegido contra limpeza automática' : ''}`; } catch (e) { const el = $('#st-used'); if (el) el.textContent = ''; }
+}
+
+/* ---------------- backup (.zip sem compressão — leve até pra galeria grande) ---------------- */
+const CRC = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+function crc32(u8) { let c = 0xFFFFFFFF; for (let i = 0; i < u8.length; i++) c = CRC[(c ^ u8[i]) & 0xFF] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; }
+async function zipBuild(entries) {   // entries: [{name, data: Uint8Array}]
+  const enc = new TextEncoder(), parts = [], central = []; let off = 0;
+  for (const e of entries) {
+    const nm = enc.encode(e.name), crc = crc32(e.data), sz = e.data.length;
+    const lh = new DataView(new ArrayBuffer(30)); lh.setUint32(0, 0x04034b50, true); lh.setUint16(4, 20, true); lh.setUint16(6, 0x0800, true); lh.setUint16(8, 0, true); lh.setUint32(14, crc, true); lh.setUint32(18, sz, true); lh.setUint32(22, sz, true); lh.setUint16(26, nm.length, true);
+    parts.push(lh.buffer, nm, e.data);
+    const ch = new DataView(new ArrayBuffer(46)); ch.setUint32(0, 0x02014b50, true); ch.setUint16(4, 20, true); ch.setUint16(6, 20, true); ch.setUint16(8, 0x0800, true); ch.setUint32(16, crc, true); ch.setUint32(20, sz, true); ch.setUint32(24, sz, true); ch.setUint16(28, nm.length, true); ch.setUint32(42, off, true);
+    central.push(ch.buffer, nm); off += 30 + nm.length + sz;
+  }
+  const cs = central.reduce((s, p) => s + p.byteLength, 0);
+  const end = new DataView(new ArrayBuffer(22)); end.setUint32(0, 0x06054b50, true); end.setUint16(8, entries.length, true); end.setUint16(10, entries.length, true); end.setUint32(12, cs, true); end.setUint32(16, off, true);
+  return new Blob([...parts, ...central, end.buffer], { type: 'application/zip' });
+}
+async function zipRead(blob) {
+  const buf = new Uint8Array(await blob.arrayBuffer()), dv = new DataView(buf.buffer); let i = buf.length - 22;
+  while (i >= 0 && dv.getUint32(i, true) !== 0x06054b50) i--;
+  if (i < 0) throw new Error('não é um backup do Criatura Light');
+  const n = dv.getUint16(i + 10, true); let p = dv.getUint32(i + 16, true); const out = new Map(), dec = new TextDecoder();
+  for (let k = 0; k < n; k++) {
+    const sz = dv.getUint32(p + 20, true), nl = dv.getUint16(p + 28, true), xl = dv.getUint16(p + 30, true), cl = dv.getUint16(p + 32, true), lo = dv.getUint32(p + 42, true), method = dv.getUint16(p + 10, true);
+    const name = dec.decode(buf.subarray(p + 46, p + 46 + nl));
+    if (method !== 0) throw new Error('backup compactado por outro programa — use o arquivo original');
+    const lnl = dv.getUint16(lo + 26, true), lxl = dv.getUint16(lo + 28, true), st = lo + 30 + lnl + lxl;
+    out.set(name, buf.subarray(st, st + sz)); p += 46 + nl + xl + cl;
+  }
+  return out;
+}
+async function makeBackup() {
+  toast('💾 Preparando o backup…');
+  const enc = new TextEncoder(), entries = [{ name: 'criatura-light.json', data: enc.encode(JSON.stringify({ app: 'criatura-light', v: 1, at: Date.now(), state: S })) }];
+  const keys = await blobKeys(); const meta = {};
+  for (const k of keys) { const b = await blobGet(k); if (!b) continue; const nm = 'blobs/' + encodeURIComponent(k); meta[nm] = b.type || ''; entries.push({ name: nm, data: new Uint8Array(await b.arrayBuffer()) }); }
+  entries.push({ name: 'blobs.json', data: enc.encode(JSON.stringify(meta)) });
+  const zip = await zipBuild(entries), name = `Criatura-Light-backup-${today()}.zip`;
+  const file = new File([zip], name, { type: 'application/zip' });
+  let ok = false;
+  if (navigator.canShare && navigator.canShare({ files: [file] }) && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent + (isIOS() ? 'iPad' : ''))) {
+    try { await navigator.share({ files: [file], title: name }); ok = true; } catch (e) { if (e && e.name === 'AbortError') return toast('Backup cancelado'); }
+  }
+  if (!ok) { const a = document.createElement('a'); a.href = URL.createObjectURL(file); a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 8000); }
+  S.settings.lastBackup = Date.now(); save(false); render();
+  toast(`✅ Backup pronto (${(zip.size / 1048576).toFixed(1).replace('.', ',')} MB) — guarde num lugar seguro`);
+}
+$('#pick-backup').onchange = async e => {
+  const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+  let z; try { z = await zipRead(f); } catch (err) { return toast('⚠️ ' + err.message); }
+  const js = z.get('criatura-light.json'); if (!js) return toast('⚠️ Esse arquivo não é um backup do Criatura Light');
+  const data = JSON.parse(new TextDecoder().decode(js));
+  const s = data.state || {};
+  if (!await ask('Restaurar este backup?', `Backup de ${new Date(data.at).toLocaleDateString('pt-BR')}: ${(s.arts || []).length} arte(s), ${(s.works || []).length} trabalho(s), ${(s.fin || []).length} lançamento(s), ${(s.notes || []).length} ideia(s), ${(s.drafts || []).length} rascunho(s).\n\nO que está agora neste aparelho será SUBSTITUÍDO por ele.`, 'Restaurar', true)) return;
+  const meta = z.has('blobs.json') ? JSON.parse(new TextDecoder().decode(z.get('blobs.json'))) : {};
+  for (const k of await blobKeys()) { dropURL(k); await blobDel(k); }
+  for (const [nm, bytes] of z) if (nm.startsWith('blobs/') ) await blobPut(decodeURIComponent(nm.slice(6)), new Blob([bytes.slice()], { type: meta[nm] || '' }));
+  S = Object.assign(DEF(), s, { settings: Object.assign(DEF().settings, s.settings || {}) });
+  S.settings.lastBackup = Date.now(); save(false); render(); toast('✅ Backup restaurado');
+};
+
+
+/* =====================================================================
+   🎞️ WEBTOON STUDIO — fatiar episódio, virar carrossel do Insta, capinhas
+   Tamanhos: WEBTOON 800 de largura, até 1280 de altura e 2 MB por imagem (100 imagens / 20 MB por episódio);
+   Tapas 940 de largura; Instagram 1080×1080 ou 1080×1350, até 20 slides.
+   A tira “virtual” nunca vira um canvas gigante (o iPhone/iPad não aguenta): desenha só o pedaço necessário.
+   ===================================================================== */
+const ST = { srcs: [], W: 800, an: null, out: [], view: 'cut', igOpts: { fmt: 'sq', per: 'auto', bg: '#ffffff', head: true }, cutOpts: { plat: 'webtoon', smart: true, w: 800, h: 1280 }, cap: null };
+const natCmp = (a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' });
+function openStudio() { $('#studio').classList.add('open'); document.body.style.overflow = 'hidden'; drawStudio(); }
+$('#st-close').onclick = () => { $('#studio').classList.remove('open'); document.body.style.overflow = ''; };
+async function stLoad(files) {
+  ST.srcs.forEach(x => x.bmp && x.bmp.close && x.bmp.close());
+  files = [...files].filter(f => /^image\//.test(f.type)).sort((a, b) => natCmp(a.name, b.name));
+  ST.srcs = []; ST.out = []; ST.an = null;
+  for (const f of files) { try { const bmp = await createImageBitmap(f); ST.srcs.push({ name: f.name, bmp, w: bmp.width, h: bmp.height, file: f }); } catch (e) { toast('⚠️ Não abri ' + f.name); } }
+  stLayout(); await stAnalyze();
+}
+function stLayout() {   // empilha as imagens numa tira virtual com largura ST.W
+  let off = 0; for (const s of ST.srcs) { s.k = ST.W / s.w; s.off = off; s.hh = s.h * s.k; off += s.hh; } ST.H = off;
+}
+function stDraw(ctx, y0, y1, dx, dy, scale, cropX0 = 0, cropX1 = ST.W) {   // desenha o trecho [y0,y1) da tira
+  for (const s of ST.srcs) {
+    const a = Math.max(y0, s.off), b = Math.min(y1, s.off + s.hh); if (b <= a) continue;
+    ctx.drawImage(s.bmp, cropX0 / s.k, (a - s.off) / s.k, (cropX1 - cropX0) / s.k, (b - a) / s.k, dx, dy + (a - y0) * scale, (cropX1 - cropX0) * scale, (b - a) * scale);
+  }
+}
+async function stAnalyze() {   // acha as linhas “vazias” (o fundo entre os quadros) numa cópia pequena
+  if (!ST.srcs.length) return;
+  const AW = 200, f = AW / ST.W, AH = Math.max(1, Math.round(ST.H * f));
+  const rowsBlank = new Uint8Array(AH); const cv = document.createElement('canvas'); cv.width = AW;
+  const CH = 2000; let bg = null;
+  for (let y = 0; y < AH; y += CH) {
+    const h = Math.min(CH, AH - y); cv.height = h; const c = cv.getContext('2d', { willReadFrequently: true });
+    c.fillStyle = '#fff'; c.fillRect(0, 0, AW, h); stDraw(c, y / f, (y + h) / f, 0, 0, f);
+    const d = c.getImageData(0, 0, AW, h).data;
+    if (!bg) {   // cor de fundo = a mais comum
+      const cnt = new Map(); for (let i = 0; i < d.length; i += 16) { const q = (d[i] >> 4) << 8 | (d[i + 1] >> 4) << 4 | (d[i + 2] >> 4); cnt.set(q, (cnt.get(q) || 0) + 1); }
+      let best = 0, bq = 0xfff; for (const [q, n] of cnt) if (n > best) { best = n; bq = q; }
+      const sum = [0, 0, 0]; let k = 0;   // cor exata do fundo = média dos pixels desse grupo
+      for (let i = 0; i < d.length; i += 16) { const q = (d[i] >> 4) << 8 | (d[i + 1] >> 4) << 4 | (d[i + 2] >> 4); if (q === bq) { sum[0] += d[i]; sum[1] += d[i + 1]; sum[2] += d[i + 2]; k++; } }
+      bg = sum.map(v => v / Math.max(1, k));
+    }
+    for (let r = 0; r < h; r++) {
+      let ok = 0; const base = r * AW * 4;
+      for (let x = 0; x < AW; x++) { const i = base + x * 4; if (Math.max(Math.abs(d[i] - bg[0]), Math.abs(d[i + 1] - bg[1]), Math.abs(d[i + 2] - bg[2])) <= 14) ok++; }   // só o fundo de verdade (cor clarinha da arte não conta)
+      rowsBlank[y + r] = ok >= AW * 0.985 ? 1 : 0;
+    }
+  }
+  ST.an = { f, rows: rowsBlank, bg };
+  // quadros = trechos não vazios separados por espaço de pelo menos ~24 px
+  const minGap = Math.max(3, Math.round(24 * f)), panels = []; let i = 0;
+  while (i < AH) {
+    while (i < AH && rowsBlank[i]) i++; if (i >= AH) break;
+    let j = i, lastInk = i;
+    while (j < AH) { if (!rowsBlank[j]) { lastInk = j; j++; continue; } let g = j; while (g < AH && rowsBlank[g]) g++; if (g - j >= minGap || g >= AH) break; j = g; }
+    const y0 = Math.max(0, (i - 1) / f), y1 = Math.min(ST.H, (lastInk + 2) / f);
+    if (y1 - y0 > 30) panels.push([y0, y1]);
+    i = Math.max(j, lastInk + 1);
+  }
+  ST.panels = panels;
+}
+function stCutPoints(maxH, smart) {
+  const cuts = [0]; const { f, rows } = ST.an || {};
+  while (ST.H - cuts[cuts.length - 1] > maxH) {
+    const start = cuts[cuts.length - 1]; let cut = start + maxH;
+    if (smart && rows) {   // volta procurando o espaço entre quadros mais próximo (sem cortar quadro no meio)
+      const lo = Math.floor((start + Math.min(120, maxH * 0.1)) * f), hi = Math.floor(cut * f) - 1;
+      for (let a = hi; a >= lo; a--) if (rows[a] && rows[a - 1]) { let b = a; while (b > lo && rows[b - 1]) b--; cut = ((a + b) / 2) / f; break; }
+    }
+    cuts.push(Math.round(cut));
+  }
+  cuts.push(ST.H); return cuts;
+}
+const cvBlob = (cv, type = 'image/jpeg', q = .92) => new Promise(r => cv.toBlob(r, type, q));
+async function jpegUnder(cv, maxBytes) { for (const q of [.95, .9, .85, .8, .74, .68, .6, .5]) { const b = await cvBlob(cv, 'image/jpeg', q); if (!maxBytes || b.size <= maxBytes || q === .5) return b; } }
+async function stCut() {
+  const o = ST.cutOpts, W = o.plat === 'tapas' ? 940 : o.plat === 'custom' ? (Number(o.w) || 800) : 800;
+  const maxH = o.plat === 'tapas' ? 2000 : o.plat === 'custom' ? (Number(o.h) || 1280) : 1280;
+  if (ST.W !== W) { ST.W = W; stLayout(); await stAnalyze(); }
+  const cuts = stCutPoints(maxH, o.smart), out = [];
+  for (let i = 0; i < cuts.length - 1; i++) {
+    const h = Math.round(cuts[i + 1] - cuts[i]); const cv = document.createElement('canvas'); cv.width = W; cv.height = h;
+    const c = cv.getContext('2d'); c.fillStyle = '#fff'; c.fillRect(0, 0, W, h); stDraw(c, cuts[i], cuts[i + 1], 0, 0, 1);
+    const blob = await jpegUnder(cv, o.plat === 'webtoon' ? 2 * 1048576 : o.plat === 'tapas' ? 9.5 * 1048576 : 0);
+    out.push({ name: String(i + 1).padStart(2, '0') + '.jpg', blob, w: W, h });
+  }
+  ST.out = out; ST.outKind = 'cut';
+}
+async function stInsta() {
+  const o = ST.igOpts, SW = 1080, SH = o.fmt === 'sq' ? 1080 : 1350, M = 40, GAP = 26;
+  if (ST.W !== 800) { ST.W = 800; stLayout(); await stAnalyze(); }
+  const handle = (S.profile.handle || '').trim(), head = o.head && handle ? 70 : 0;
+  const aw = SW - 2 * M, ah = SH - 2 * M - head;
+  const fit = p => { const ph = p[1] - p[0]; let k = aw / ST.W; if (ph * k > ah) k = ah / ph; return { p, k, w: ST.W * k, h: ph * k }; };
+  const items = (ST.panels && ST.panels.length ? ST.panels : [[0, ST.H]]).map(fit);
+  const per = o.per === 'auto' ? 99 : Number(o.per), slides = []; let cur = [], used = 0;
+  for (const it of items) {
+    const need = (cur.length ? GAP : 0) + it.h;
+    if (cur.length && (used + need > ah + 0.5 || cur.length >= per)) { slides.push(cur); cur = []; used = 0; }
+    used += (cur.length ? GAP : 0) + it.h; cur.push(it);
+  }
+  if (cur.length) slides.push(cur);
+  const dark = (() => { const m = /^#?(..)(..)(..)/.exec(o.bg); if (!m) return false; const [r, g, b] = m.slice(1).map(x => parseInt(x, 16)); return r * .3 + g * .59 + b * .11 < 128; })();
+  const out = [];
+  for (let si = 0; si < slides.length; si++) {
+    const cv = document.createElement('canvas'); cv.width = SW; cv.height = SH; const c = cv.getContext('2d');
+    c.fillStyle = o.bg; c.fillRect(0, 0, SW, SH);
+    if (head) { c.fillStyle = dark ? '#f2f2f2' : '#111'; c.font = '800 34px system-ui, -apple-system, sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(handle.toUpperCase().startsWith('@') ? handle.toUpperCase() : '@' + handle.toUpperCase(), SW / 2, M + 26); }
+    const list = slides[si], total = list.reduce((a, it) => a + it.h, 0) + GAP * (list.length - 1);
+    let y = M + head + Math.max(0, (ah - total) / 2);
+    for (const it of list) { stDraw(c, it.p[0], it.p[1], (SW - it.w) / 2, y, it.k); y += it.h + GAP; }
+    out.push({ name: 'slide-' + String(si + 1).padStart(2, '0') + '.jpg', blob: await jpegUnder(cv, 0), w: SW, h: SH });
+  }
+  ST.out = out; ST.outKind = 'ig';
+}
+async function stExport(share) {
+  if (!ST.out.length) return;
+  const files = ST.out.map(x => new File([x.blob], x.name, { type: 'image/jpeg' }));
+  if (share && navigator.canShare && navigator.canShare({ files })) { try { await navigator.share({ files }); return; } catch (e) { if (e && e.name === 'AbortError') return; } }
+  const zip = await zipBuild(await Promise.all(ST.out.map(async x => ({ name: x.name, data: new Uint8Array(await x.blob.arrayBuffer()) }))));
+  const a = document.createElement('a'); a.href = URL.createObjectURL(zip); a.download = (ST.outKind === 'ig' ? 'carrossel-insta-' : 'episodio-fatiado-') + today() + '.zip'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 8000);
+}
+const kb = n => n >= 1048576 ? (n / 1048576).toFixed(1).replace('.', ',') + ' MB' : Math.round(n / 1024) + ' KB';
+function drawStudio() {
+  const m = $('#st-main'), n = ST.srcs.length;
+  m.innerHTML = `<div class="card"><div class="t">1️⃣ <span class="grow">Imagens do episódio</span></div>
+      <div class="s">Pode ser a tira longa inteira ou as partes já exportadas — elas são juntadas na ordem do nome do arquivo.</div>
+      <div class="row" style="margin-top:10px"><button class="btn primary" id="st-pick">📂 ${n ? 'Trocar imagens' : 'Escolher imagens'}</button></div>
+      <input type="file" id="st-file" accept="image/*" multiple hidden>
+      ${n ? `<div class="st-files" id="st-files"></div><small class="muted">${n} imagem(ns) · ${ST.panels ? ST.panels.length + ' quadro(s) encontrados' : ''}</small>` : ''}</div>
+    <div class="toolbar" style="margin-top:14px"><div class="seg"><button data-sv="cut" class="${ST.view === 'cut' ? 'on' : ''}">✂️ Fatiar</button><button data-sv="ig" class="${ST.view === 'ig' ? 'on' : ''}">📱 Insta</button><button data-sv="cap" class="${ST.view === 'cap' ? 'on' : ''}">🖼️ Capinhas</button></div></div>
+    <div id="st-panel"></div>`;
+  $('#st-pick').onclick = () => $('#st-file').click();
+  $('#st-file').onchange = async e => { const fs = [...e.target.files]; e.target.value = ''; if (!fs.length) return; toast('🎞️ Lendo as imagens…'); await stLoad(fs); drawStudio(); };
+  $$('[data-sv]', m).forEach(b => b.onclick = () => { ST.view = b.dataset.sv; drawStudio(); });
+  if (n) { const box = $('#st-files'); ST.srcs.slice(0, 30).forEach(s => { const c = document.createElement('canvas'); const k = 92 / s.h; c.width = Math.max(1, Math.round(s.w * k)); c.height = 92; c.getContext('2d').drawImage(s.bmp, 0, 0, c.width, 92); const im = new Image(); im.src = c.toDataURL('image/jpeg', .7); box.appendChild(im); }); }
+  const p = $('#st-panel');
+  if (ST.view === 'cap') return drawCaps(p);
+  if (!n) { p.innerHTML = `<div class="empty">Escolha as imagens do episódio primeiro 👆</div>`; return; }
+  if (ST.view === 'cut') {
+    const o = ST.cutOpts;
+    p.innerHTML = `<div class="card"><label class="f" style="margin-top:0">Pra onde</label>${optsHtml('plat', [['webtoon', 'WEBTOON (800×1280)'], ['tapas', 'Tapas (940 de largura)'], ['custom', 'Outro tamanho']], o.plat)}
+      ${o.plat === 'custom' ? `<div class="row" style="margin-top:8px"><input id="cu-w" type="number" value="${o.w}" placeholder="largura"><input id="cu-h" type="number" value="${o.h}" placeholder="altura máx."></div>` : ''}
+      <div class="switch"><span>✂️ Cortar só nos espaços entre quadros<br><small class="muted">Não corta balão nem quadro no meio</small></span><input type="checkbox" id="cu-smart" ${o.smart ? 'checked' : ''}></div>
+      <button class="btn primary" id="cu-go" style="width:100%;margin-top:6px">✂️ Fatiar episódio</button></div><div id="st-res"></div>`;
+    bindOpts(p, 'plat', v => { o.plat = v; drawStudio(); });
+    $('#cu-smart').onchange = e => { o.smart = e.target.checked; };
+    if ($('#cu-w')) { $('#cu-w').onchange = e => o.w = e.target.value; $('#cu-h').onchange = e => o.h = e.target.value; }
+    $('#cu-go').onclick = async () => { $('#cu-go').disabled = true; $('#cu-go').textContent = '⏳ Fatiando…'; await stCut(); drawStudio(); };
+  } else {
+    const o = ST.igOpts, h = (S.profile.handle || '').trim();
+    p.innerHTML = `<div class="card"><label class="f" style="margin-top:0">Formato</label>${optsHtml('fmt', [['sq', '⬛ Quadrado 1080×1080'], ['45', '▯ Retrato 1080×1350']], o.fmt)}
+      <label class="f">Quadros por slide</label>${optsHtml('per', [['auto', 'Automático (cabe o máximo)'], ['1', '1'], ['2', '2'], ['3', '3']], o.per)}
+      <div class="switch"><span>@ no topo de cada slide<br><small class="muted">${h ? esc(h) : 'Coloque seu @ em ⚙️ Mais → Perfil'}</small></span><input type="checkbox" id="ig-head" ${o.head ? 'checked' : ''} ${h ? '' : 'disabled'}></div>
+      <div class="switch"><span>Cor do fundo</span><input type="color" id="ig-bg" value="${o.bg}" style="width:52px;height:36px;padding:2px;border-radius:8px"></div>
+      <button class="btn primary" id="ig-go" style="width:100%;margin-top:6px">📱 Montar carrossel</button></div><div id="st-res"></div>`;
+    bindOpts(p, 'fmt', v => o.fmt = v); bindOpts(p, 'per', v => o.per = v);
+    $('#ig-head').onchange = e => o.head = e.target.checked; $('#ig-bg').oninput = e => o.bg = e.target.value;
+    $('#ig-go').onclick = async () => { $('#ig-go').disabled = true; $('#ig-go').textContent = '⏳ Montando…'; await stInsta(); drawStudio(); };
+  }
+  if (ST.out.length && ((ST.view === 'cut' && ST.outKind === 'cut') || (ST.view === 'ig' && ST.outKind === 'ig'))) {
+    const tot = ST.out.reduce((a, x) => a + x.blob.size, 0), r = $('#st-res'), warn = [];
+    if (ST.outKind === 'cut' && ST.cutOpts.plat === 'webtoon') { if (ST.out.length > 100) warn.push('O WEBTOON aceita até 100 imagens por episódio.'); if (tot > 20 * 1048576) warn.push('Passou de 20 MB no total — o WEBTOON não aceita. Divida o episódio.'); }
+    if (ST.outKind === 'ig' && ST.out.length > 20) warn.push(`Deu ${ST.out.length} slides — o Instagram aceita até 20 por post. Divida em dois posts, ou use 3 quadros por slide.`);
+    r.innerHTML = `<div class="group-h">${ST.outKind === 'ig' ? '📱 Slides' : '✂️ Fatias'} <em>${ST.out.length} · ${kb(tot)}</em></div>${warn.map(w => `<div class="st-warn">⚠️ ${esc(w)}</div>`).join('')}
+      <div class="st-out${ST.outKind === 'ig' ? ' ig' : ''}">${ST.out.map((x, i) => `<figure><img data-o="${i}" alt=""><figcaption><span>${x.name}</span><span>${kb(x.blob.size)}</span></figcaption></figure>`).join('')}</div>
+      <div class="row" style="margin-top:12px"><button class="btn primary" id="st-share">📤 Compartilhar${ST.outKind === 'ig' ? ' (manda pro Insta)' : ''}</button><button class="btn" id="st-zip">📦 Baixar .zip</button></div>`;
+    $$('img[data-o]', r).forEach(im => { im.src = URL.createObjectURL(ST.out[+im.dataset.o].blob); im.onclick = () => { const u = im.src; openSheet(`<img src="${u}" style="width:100%;border-radius:10px;background:#fff"><div class="actions"><button class="btn" onclick="closeSheet()">Fechar</button></div>`); }; });
+    $('#st-share').onclick = () => stExport(true); $('#st-zip').onclick = () => stExport(false);
+  }
+}
+/* 🖼️ capinhas no tamanho e no peso certos */
+const CAPS = [['wsq', 'WEBTOON quadrada', 1080, 1080, 500], ['wvt', 'WEBTOON vertical', 1080, 1920, 700], ['wep', 'Episódio WEBTOON', 160, 151, 500], ['tap', 'Tapas (quadrada)', 300, 300, 2000], ['igsq', 'Post Insta', 1080, 1080, 0]];
+function drawCaps(p) {
+  const c = ST.cap || (ST.cap = { type: 'wsq', zoom: 1, x: .5, y: .5, img: null });
+  const t = CAPS.find(x => x[0] === c.type) || CAPS[0];
+  p.innerHTML = `<div class="card"><label class="f" style="margin-top:0">Tipo</label>${optsHtml('cap', CAPS.map(x => [x[0], `${x[1]} <small class="muted">${x[2]}×${x[3]}</small>`]), c.type)}
+    <div class="row" style="margin-top:10px"><button class="btn" id="cap-pick">🖼️ Escolher imagem</button>${ST.srcs.length ? '<button class="btn" id="cap-ep">Usar o 1º quadro do episódio</button>' : ''}</div><input type="file" id="cap-file" accept="image/*" hidden>
+    ${c.img ? `<canvas id="cv-cap"></canvas><small class="muted" style="display:block;text-align:center">Arraste a imagem pra enquadrar</small>
+      <label class="f">Zoom</label><input type="range" id="cap-z" min="1" max="4" step="0.01" value="${c.zoom}">
+      <button class="btn primary" id="cap-go" style="width:100%;margin-top:12px">💾 Salvar capinha ${t[4] ? `(até ${t[4] >= 1000 ? t[4] / 1000 + ' MB' : t[4] + ' KB'})` : ''}</button><div id="cap-st" class="muted" style="font-size:13px;margin-top:6px"></div>` : '<div class="empty" style="margin-top:10px">Escolha uma imagem pra fazer a capinha.</div>'}</div>`;
+  bindOpts(p, 'cap', v => { c.type = v; drawStudio(); });
+  $('#cap-pick').onclick = () => $('#cap-file').click();
+  $('#cap-file').onchange = async e => { const f = e.target.files[0]; if (!f) return; c.img = await createImageBitmap(f); c.zoom = 1; c.x = c.y = .5; drawStudio(); };
+  if ($('#cap-ep')) $('#cap-ep').onclick = async () => {
+    const pnl = (ST.panels && ST.panels[0]) || [0, Math.min(ST.H, ST.W)]; const cv = document.createElement('canvas'); cv.width = ST.W; cv.height = Math.round(pnl[1] - pnl[0]);
+    const g = cv.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, cv.width, cv.height); stDraw(g, pnl[0], pnl[1], 0, 0, 1); c.img = await createImageBitmap(cv); c.zoom = 1; c.x = c.y = .5; drawStudio();
+  };
+  if (!c.img) return;
+  const cv = $('#cv-cap'); cv.width = t[2]; cv.height = t[3];
+  const paint = (g, W, H) => { const k = Math.max(W / c.img.width, H / c.img.height) * c.zoom, dw = c.img.width * k, dh = c.img.height * k; g.fillStyle = '#fff'; g.fillRect(0, 0, W, H); g.drawImage(c.img, (W - dw) * c.x, (H - dh) * c.y, dw, dh); };
+  const redraw = () => paint(cv.getContext('2d'), cv.width, cv.height); redraw();
+  $('#cap-z').oninput = e => { c.zoom = Number(e.target.value); redraw(); };
+  let drag = null;
+  cv.onpointerdown = e => { drag = { x: e.clientX, y: e.clientY, cx: c.x, cy: c.y }; cv.setPointerCapture(e.pointerId); };
+  cv.onpointermove = e => { if (!drag) return; const r = cv.getBoundingClientRect(); c.x = Math.min(1, Math.max(0, drag.cx - (e.clientX - drag.x) / r.width * 1.5)); c.y = Math.min(1, Math.max(0, drag.cy - (e.clientY - drag.y) / r.height * 1.5)); redraw(); };
+  cv.onpointerup = cv.onpointercancel = () => { drag = null; };
+  $('#cap-go').onclick = async () => {
+    const blob = await jpegUnder(cv, t[4] * 1024), name = `capa-${t[0]}-${t[2]}x${t[3]}.jpg`;
+    $('#cap-st').textContent = `${t[2]}×${t[3]} · ${kb(blob.size)}${t[4] && blob.size > t[4] * 1024 ? ' — ainda acima do limite, tente menos detalhe' : ' ✅ dentro do limite'}`;
+    const file = new File([blob], name, { type: 'image/jpeg' });
+    if (navigator.canShare && navigator.canShare({ files: [file] }) && /Android|iPhone|iPad/i.test(navigator.userAgent + (isIOS() ? 'iPad' : ''))) { try { await navigator.share({ files: [file] }); return; } catch (e) { if (e && e.name === 'AbortError') return; } }
+    const a = document.createElement('a'); a.href = URL.createObjectURL(file); a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 6000);
+  };
+}
+
+
+/* ⚖️ comparar duas imagens: arraste a barrinha pra um lado e pro outro */
+let cmpState = null;
+async function openCompare(keyA, keyB, labA, labB, title) {
+  cmpState = { keyA, keyB, labA, labB, pos: .5 };
+  $('#cmp-title').textContent = '⚖️ ' + (title || 'Comparar');
+  $('#cmp').classList.add('open'); document.body.style.overflow = 'hidden';
+  await cmpPaint();
+}
+async function cmpPaint() {
+  const c = cmpState; $('#cmp-a').src = await blobURL(c.keyA); $('#cmp-b').src = await blobURL(c.keyB);
+  $('#cmp-la').textContent = c.labA; $('#cmp-lb').textContent = c.labB; cmpMove(c.pos);
+}
+function cmpMove(p) {
+  cmpState.pos = p = Math.min(1, Math.max(0, p));
+  $('#cmp-a').style.clipPath = `inset(0 ${((1 - p) * 100).toFixed(2)}% 0 0)`;
+  $('#cmp-line').style.left = $('#cmp-knob').style.left = (p * 100).toFixed(2) + '%';
+}
+{ const box = $('#cmp-box'); let on = false;
+  const at = e => { const r = box.getBoundingClientRect(); cmpMove((e.clientX - r.left) / r.width); };
+  box.addEventListener('pointerdown', e => { on = true; box.setPointerCapture(e.pointerId); at(e); });
+  box.addEventListener('pointermove', e => { if (on) at(e); });
+  box.addEventListener('pointerup', () => { on = false; }); box.addEventListener('pointercancel', () => { on = false; }); }
+$('#cmp-close').onclick = () => { $('#cmp').classList.remove('open'); if (!$('#viewer').classList.contains('open') && !$('#studio').classList.contains('open')) document.body.style.overflow = ''; cmpState = null; };
+$('#cmp-swap').onclick = () => { const c = cmpState; [c.keyA, c.keyB, c.labA, c.labB] = [c.keyB, c.keyA, c.labB, c.labA]; cmpPaint(); };
+document.addEventListener('keydown', e => { if (!cmpState) return; if (e.key === 'Escape') $('#cmp-close').click(); if (e.key === 'ArrowLeft') cmpMove(cmpState.pos - .05); if (e.key === 'ArrowRight') cmpMove(cmpState.pos + .05); });
+
+/* ---------------- início ---------------- */
+(async () => {
+  await load();
+  render();
+  if (backupLate()) setTimeout(() => toast('💾 Faz tempo que você não faz backup — veja em ⚙️ Mais'), 1200);
+  if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+    try {
+      const reg = await navigator.serviceWorker.register('sw.js');
+      reg.addEventListener('updatefound', () => { const w = reg.installing; if (!w) return; w.addEventListener('statechange', () => { if (w.state === 'installed' && navigator.serviceWorker.controller) toast('✨ Atualização do Criatura Light pronta — feche e abra o app'); }); });
+    } catch (e) { console.warn('sw', e); }
+  }
+  window.__lightReady = true;
+})();
+</script>
+</body>
+</html>
