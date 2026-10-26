@@ -3,6 +3,7 @@
   "short_name": "Criatura",
   "description": "Galeria, clientes, financeiro e ideias — a versão leve do Criatura Problemática PRO, pra celular e tablet.",
   "lang": "pt-BR",
+  "id": "./",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
