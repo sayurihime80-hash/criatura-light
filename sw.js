@@ -1,6 +1,6 @@
 /* Criatura Light — funciona sem internet: guarda os arquivos do app no aparelho.
    Os DADOS (artes, clientes, financeiro…) ficam no IndexedDB, não aqui. */
-const VERSION = 'light-1.03';
+const VERSION = 'light-1.04';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/maskable-512.png', './icons/apple-touch-icon.png'];
 
 self.addEventListener('install', e => {

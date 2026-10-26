@@ -37,7 +37,8 @@ label.f { display: block; font-size: 12px; font-weight: 700; color: var(--muted)
 .btn.ghost { background: transparent; }
 .btn:disabled { opacity: .45; }
 .row { display: flex; gap: 8px; align-items: center; }
-.row > * { flex: 1; }
+.row > * { flex: 1; min-width: 0; }
+input[type=date] { min-width: 0; width: 100%; }
 .muted { color: var(--muted); }
 small { font-size: 12px; }
 
@@ -184,6 +185,19 @@ nav.tabs .dot { position: absolute; top: 9px; right: calc(50% - 16px); width: 7p
 .sect h3 { font-size: 13px; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); margin: 18px 2px 8px; }
 .notice { border: 1px solid rgba(229,196,106,.35); background: rgba(229,196,106,.06); border-radius: var(--r); padding: 12px 14px; }
 
+#viewer .vbar .vt { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+#viewer .vbar .vt b { flex: none; }
+#viewer .vbar .vt small { font-size: 12px; color: rgba(255,255,255,.62); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#viewer .vbar .vt small:empty { display: none; }
+.stars { display: flex; gap: 6px; }
+.stars button { width: 40px; height: 38px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--line); font-size: 19px; line-height: 1; }
+.stars button.on { color: #d9bf72; border-color: rgba(217,191,114,.35); }
+.workbox { margin-top: 16px; padding: 4px 14px 14px; border: 1px solid var(--line); border-radius: 14px; background: var(--bg); }
+.workbox h3 { font-size: 13px; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); margin: 12px 0 2px; }
+.workbox[hidden], [hidden] { display: none !important; }
+.gkind { margin: -2px 0 8px; }
+.cthumbs { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; }
+.cthumbs img { width: 64px; height: 64px; object-fit: cover; border-radius: 10px; border: 1px solid var(--line); background: var(--card); flex: 0 0 auto; cursor: pointer; }
 /* 🎞️ Webtoon Studio */
 #studio { position: fixed; inset: 0; z-index: 65; background: var(--bg); display: none; flex-direction: column; }
 #studio.open { display: flex; }
@@ -233,7 +247,7 @@ input[type=range] { min-height: 0; padding: 0; accent-color: var(--accent); bord
   <button data-tab="ideas"><span class="ic">💡</span>Ideias</button>
   <button data-tab="more"><span class="ic">⚙️</span>Mais</button>
 </nav>
-<div id="viewer"><div class="vbar"><button id="v-close" aria-label="Fechar">✕</button><b id="v-title"></b><span id="v-pos" class="muted" style="font-size:12px"></span></div>
+<div id="viewer"><div class="vbar"><button id="v-close" aria-label="Fechar">✕</button><div class="vt"><b id="v-title"></b><small id="v-sub"></small></div><span id="v-pos" class="muted" style="font-size:12px"></span></div>
   <div class="vstage" id="v-stage"><img id="v-img" alt=""></div>
   <div class="vfoot"><button id="v-prev" aria-label="Anterior">‹</button><button id="v-edit">✏️ Editar</button><button id="v-share">📤 Compartilhar</button><button id="v-next" aria-label="Próxima">›</button></div>
 </div>
@@ -251,7 +265,7 @@ input[type=range] { min-height: 0; padding: 0; accent-color: var(--accent); bord
    Criatura Light — versão leve do Criatura Problemática PRO para celular/tablet
    Dados só neste aparelho (IndexedDB). Backup: arquivo .zip (Mais → Backup).
    ===================================================================== */
-const APP_VER = '1.03';
+const APP_VER = '1.04';
 const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const uid = p => p + '_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
@@ -341,7 +355,7 @@ async function addImages(files, extra = {}) {
     try {
       const id = uid('art'), t = await makeThumb(f);
       await blobPut(id + ':o', f); await blobPut(id + ':t', t.blob);
-      S.arts.unshift({ id, title: f.name.replace(/\.[^.]+$/, ''), date: new Date(f.lastModified || Date.now()).toISOString().slice(0, 10), added: Date.now(), w: t.w, h: t.h, nsfw: false, folder: '', tags: [], notes: '', clientId: '', ...extra });
+      S.arts.unshift({ id, title: niceTitle(f.name), date: new Date(f.lastModified || Date.now()).toISOString().slice(0, 10), added: Date.now(), w: t.w, h: t.h, nsfw: false, folder: '', tags: [], notes: '', clientId: '', ...extra });
       n++;
     } catch (e) { console.warn(e); }
   }
@@ -399,7 +413,7 @@ $('#pick-img').onchange = async e => { const fs = [...e.target.files]; e.target.
 /* =====================================================================
    🖼️ GALERIA
    ===================================================================== */
-let galMode = 'sfw', galFolder = '', galQ = '', selecting = false;
+let galMode = 'sfw', galKind = '', galFolder = '', galQ = '', selecting = false;
 const sel = new Set();
 function galList() {
   const q = norm(galQ);
@@ -407,6 +421,7 @@ function galList() {
     if (a.nsfw && (S.settings.safe || galMode === 'sfw')) return false;   // 🛡️ modo seguro esconde tudo que é +18
     if (galMode === 'nsfw' && !a.nsfw) return false;
     if (galFolder && a.folder !== galFolder) return false;
+    if (galKind && artKind(a) !== galKind) return false;
     if (q && !norm([a.title, (a.tags || []).join(' '), a.notes, (S.clients.find(c => c.id === a.clientId) || {}).name].join(' ')).includes(q)) return false;
     return true;
   });
@@ -418,9 +433,11 @@ function renderGal(m) {
   m.innerHTML = `<div class="toolbar"><div class="seg"><button data-gm="sfw" class="${galMode === 'sfw' ? 'on' : ''}">🟢 Só SFW</button>${S.settings.safe ? '' : `<button data-gm="nsfw" class="${galMode === 'nsfw' ? 'on' : ''}">🔞 NSFW</button>`}<button data-gm="all" class="${galMode === 'all' ? 'on' : ''}">🌐 Tudo</button></div>
       <button class="btn ghost" id="safe-btn" style="min-height:38px;padding:0 10px" title="Modo seguro">${S.settings.safe ? '🛡️ ON' : '🛡️ OFF'}</button>
       <input class="search" id="gal-q" type="search" placeholder="🔎 Buscar…" value="${esc(galQ)}"></div>
+    <div class="seg gkind">${[['pessoal', '🎨 Pessoais'], ['trabalho', '💼 Trabalhos']].map(([k, l]) => `<button data-gk="${k}" class="${galKind === k ? 'on' : ''}">${l}</button>`).join('')}</div>
     <div class="chips" id="gal-folders">${[['', '🖼️', 'Todas', vis.length]].concat(S.folders.map(f => [f.id, f.ic, f.name, vis.filter(a => a.folder === f.id).length])).map(([id, ic, n, c]) => `<button class="chip${galFolder === id ? ' on' : ''}" data-f="${esc(id)}">${ic} ${esc(n)} <em>${c}</em></button>`).join('')}<button class="chip new" id="f-new">＋ Pasta</button>${galFolder ? '<button class="chip" id="f-edit">⋯</button>' : ''}</div>
     <div class="${selecting ? 'selecting' : ''}" id="gal-wrap"></div>`;
   $$('[data-gm]', m).forEach(b => b.onclick = () => { galMode = b.dataset.gm; render(); });
+  $$('[data-gk]', m).forEach(b => b.onclick = () => { galKind = galKind === b.dataset.gk ? '' : b.dataset.gk; render(); });   // tocar de novo = mostra todas
   $('#safe-btn', m).onclick = toggleSafe;
   let t = 0; $('#gal-q', m).oninput = e => { galQ = e.target.value; clearTimeout(t); t = setTimeout(() => drawGrid(), 150); };
   $$('[data-f]', m).forEach(b => b.onclick = () => { galFolder = b.dataset.f; render(); });
@@ -499,9 +516,9 @@ async function openPhotos(keys, idx, title) {
   vIds = keys; vIdx = idx; $('#viewer').classList.add('open'); document.body.style.overflow = 'hidden'; await showV();
 }
 async function showV() {
-  if (vPhotos) { $('#v-title').textContent = `${vPhotos.title} · versão ${vIdx + 1}`; $('#v-pos').textContent = `${vIdx + 1}/${vIds.length}`; $('#v-stage').classList.remove('zoom'); $('#v-img').src = await blobURL(vIds[vIdx]); return; }
+  if (vPhotos) { $('#v-title').textContent = `${vPhotos.title} · versão ${vIdx + 1}`; $('#v-sub').textContent = ''; $('#v-pos').textContent = `${vIdx + 1}/${vIds.length}`; $('#v-stage').classList.remove('zoom'); $('#v-img').src = await blobURL(vIds[vIdx]); return; }
   const a = S.arts.find(x => x.id === vIds[vIdx]); if (!a) return closeViewer();
-  $('#v-title').textContent = a.title || '';
+  $('#v-title').textContent = a.title || 'Sem título'; $('#v-sub').textContent = artLine(a);
   $('#v-pos').textContent = `${vIdx + 1}/${vIds.length}`;
   $('#v-stage').classList.remove('zoom');
   const img = $('#v-img'); img.src = await blobURL(a.id + ':t');
@@ -525,20 +542,90 @@ $('#v-share').onclick = async () => {
   else { const l = document.createElement('a'); l.href = URL.createObjectURL(file); l.download = file.name; l.click(); setTimeout(() => URL.revokeObjectURL(l.href), 4000); }
 };
 $('#v-edit').onclick = () => { const a = S.arts.find(x => x.id === vIds[vIdx]); if (a) editArt(a); };
+/* nome do arquivo vira título só se for um nome "de gente" (não código aleatório de câmera/WhatsApp) */
+function niceTitle(name) {
+  const t = String(name || '').replace(/\.(png|jpe?g|webp|gif|heic|heif|bmp|avif|tiff?)$/i, '').trim();
+  if (!t || /^[0-9a-f]{6,}[-_]?[0-9a-f-]{6,}/i.test(t) || /^(IMG|PXL|DSC|DCIM|Screenshot|Captura|WhatsApp|VID|image|photo|foto)[\s_-]*\d/i.test(t) || /^\d[\d\s_.-]{5,}$/.test(t)) return '';
+  return t;
+}
+/* 👤 cliente digitando: mostra sugestões; nome novo vira cliente sozinho ao salvar */
+const clientName = id => (S.clients.find(c => c.id === id) || {}).name || '';
+const clientInput = (id, cur) => `<input id="${id}" list="${id}-dl" value="${esc(clientName(cur))}" placeholder="Digite o nome ou @" autocomplete="off"><datalist id="${id}-dl">${S.clients.slice().sort((a, b) => a.name.localeCompare(b.name, 'pt')).map(c => `<option value="${esc(c.name)}">`).join('')}</datalist>`;
+function resolveClient(name) {
+  name = String(name || '').trim(); if (!name) return '';
+  const k = norm(name); let c = S.clients.find(x => norm(x.name) === k || (x.handle && norm(x.handle) === k));
+  if (!c) { c = { id: uid('c'), name, handle: name.startsWith('@') ? name : '', contact: '', notes: '' }; S.clients.push(c); toast(`👤 ${name} entrou nos seus clientes`); }
+  return c.id;
+}
+const ART_STAGE = [['rascunho', '💡 Rascunho'], ['andamento', '✏️ Em andamento'], ['finalizado', '🟢 Finalizada'], ['arquivado', '📁 Arquivada']];
+const PAYST = [['pendente', '⏳ Pendente'], ['sinal', '🌗 1ª parte paga'], ['pago', '✅ Pago'], ['cortesia', '🎁 Cortesia']];
+const artKind = a => a.type || (a.clientId || a.price ? 'trabalho' : 'pessoal');
+function artReceived(a) {
+  const p = Number(a.price) || 0;
+  if (a.paystat === 'pago') return p;
+  if (a.paystat === 'sinal') return a.amt1 !== '' && a.amt1 != null ? Number(a.amt1) || 0 : Math.round(p * 50) / 100;
+  return 0;
+}
+function artLine(a) {   // resuminho que aparece no visualizador
+  const bits = [];
+  if (artKind(a) === 'trabalho') {
+    bits.push('💼 ' + (clientName(a.clientId) || 'Trabalho'));
+    if (Number(a.price)) bits.push(money(a.price, a.cur));
+    if (a.paystat) bits.push((PAYST.find(p => p[0] === a.paystat) || PAYST[0])[1]);
+  } else bits.push('🎨 Pessoal');
+  if (a.rating) bits.push('⭐'.repeat(a.rating));
+  return bits.join(' · ');
+}
 function editArt(a) {
+  const kind = artKind(a), st = a.stage || 'finalizado', pm = a.paymode || 'avista', ps = a.paystat || 'pendente';
+  const title = niceTitle(a.title);
   openSheet(`<h2>✏️ Informações da arte</h2>
-    <label class="f">Título</label><input id="a-t" value="${esc(a.title)}">
-    <label class="f">Pasta</label><select id="a-f"><option value="">Sem pasta</option>${S.folders.map(f => `<option value="${esc(f.id)}"${a.folder === f.id ? ' selected' : ''}>${esc(f.ic + ' ' + f.name)}</option>`).join('')}</select>
+    <label class="f">Título</label><input id="a-t" value="${esc(title)}" placeholder="Sem título">
+    <label class="f">Finalidade</label>${optsHtml('kind', [['pessoal', '🎨 Pessoal'], ['trabalho', '💼 Trabalho / comissão']], kind)}
+    <label class="f">Estágio</label>${optsHtml('stage', ART_STAGE, st)}
+    <label class="f">Avaliação</label><div class="stars" id="a-r">${[1, 2, 3, 4, 5].map(i => `<button type="button" data-r="${i}" class="${i <= (a.rating || 0) ? 'on' : ''}" aria-label="${i} estrela(s)">★</button>`).join('')}</div>
+    <div class="row"><div><label class="f">Pasta</label><select id="a-f"><option value="">Sem pasta</option>${S.folders.map(f => `<option value="${esc(f.id)}"${a.folder === f.id ? ' selected' : ''}>${esc(f.ic + ' ' + f.name)}</option>`).join('')}</select></div>
+      <div><label class="f">Data da arte</label><input id="a-d" type="date" value="${esc(a.date || '')}"></div></div>
     <div class="switch"><span>🔞 Arte +18 (NSFW)</span><input type="checkbox" id="a-n" ${a.nsfw ? 'checked' : ''}></div>
-    <label class="f">Tags (separe por vírgula)</label><input id="a-tags" value="${esc((a.tags || []).join(', '))}">
-    <label class="f">Cliente</label><select id="a-c"><option value="">—</option>${S.clients.map(c => `<option value="${esc(c.id)}"${a.clientId === c.id ? ' selected' : ''}>${esc(c.name)}</option>`).join('')}</select>
-    <label class="f">Data da arte</label><input id="a-d" type="date" value="${esc(a.date || '')}">
-    <label class="f">Notas</label><textarea id="a-no">${esc(a.notes || '')}</textarea>
+    <label class="f">Tags (separe por vírgula)</label><input id="a-tags" value="${esc((a.tags || []).join(', '))}" placeholder="ex.: oc, fanart, chibi">
+    <div id="a-work" class="workbox"${kind === 'trabalho' ? '' : ' hidden'}>
+      <h3>💼 Trabalho & pagamento</h3>
+      <label class="f">Cliente</label>${clientInput('a-c', a.clientId)}
+      <small class="muted">Digite o nome — se for alguém novo, já entra nos seus 👥 Clientes.</small>
+      <label class="f">Valor</label><div class="row"><input id="a-p" type="number" inputmode="decimal" step="0.01" value="${esc(a.price ?? '')}" placeholder="0,00">${optsHtml('cur', [['BRL', 'R$'], ['USD', 'US$']], a.cur || S.settings.currency || 'BRL').replace('class="opts"', 'class="opts" style="flex:0 0 auto"')}</div>
+      <label class="f">Forma de pagamento</label>${optsHtml('pm', [['avista', '💵 À vista'], ['2x', '🌗 2 vezes (50/50)']], pm)}
+      <label class="f">Situação</label>${optsHtml('ps', PAYST, ps)}
+      <div id="a-amt1-row"${pm === '2x' ? '' : ' hidden'}><label class="f">1ª parte — valor</label><input id="a-amt1" type="number" inputmode="decimal" step="0.01" value="${esc(a.amt1 ?? '')}" placeholder="em branco = metade"></div>
+      <div class="row"><div><label class="f">Início</label><input id="a-s" type="date" value="${esc(a.start || '')}"></div><div><label class="f">Entrega</label><input id="a-e" type="date" value="${esc(a.end || '')}"></div></div>
+      <label class="f">Pago em</label><div class="row"><input id="a-pa" type="date" value="${esc(a.paidAt || '')}"><button type="button" class="btn" id="a-pa-now" style="flex:0 0 auto">Hoje</button></div>
+      <small class="muted">Quando o pagamento entra, o valor vai sozinho pro 💰 Financeiro (na data do "Pago em").</small>
+    </div>
+    <label class="f">Notas</label><textarea id="a-no" placeholder="Referências, detalhes, combinados…">${esc(a.notes || '')}</textarea>
     <div class="actions"><button class="btn danger" data-a="del">🗑️</button><button class="btn ghost" data-a="no">Cancelar</button><button class="btn primary" data-a="ok">Salvar</button></div>`, sh => {
+    let rating = a.rating || 0;
+    bindOpts(sh, 'kind', v => { sh.querySelector('#a-work').hidden = v !== 'trabalho'; });
+    bindOpts(sh, 'stage', () => {}); bindOpts(sh, 'cur', () => {}); bindOpts(sh, 'ps', v => { if ((v === 'pago' || v === 'sinal') && !$('#a-pa').value) $('#a-pa').value = today(); });
+    bindOpts(sh, 'pm', v => { sh.querySelector('#a-amt1-row').hidden = v !== '2x'; });
+    const stars = sh.querySelectorAll('#a-r button');
+    stars.forEach(b => b.onclick = () => { const r = Number(b.dataset.r); rating = rating === r ? 0 : r; stars.forEach(x => x.classList.toggle('on', Number(x.dataset.r) <= rating)); });
+    sh.querySelector('#a-pa-now').onclick = () => { $('#a-pa').value = today(); };
     sh.querySelector('[data-a=no]').onclick = closeSheet;
     sh.querySelector('[data-a=ok]').onclick = () => {
-      Object.assign(a, { title: $('#a-t').value.trim(), folder: $('#a-f').value, nsfw: $('#a-n').checked, tags: $('#a-tags').value.split(',').map(x => x.trim()).filter(Boolean), clientId: $('#a-c').value, date: $('#a-d').value, notes: $('#a-no').value });
-      save(); closeSheet(); if ($('#viewer').classList.contains('open')) showV(); render(); toast('✅ Salvo');
+      const k = optVal(sh, 'kind') || 'pessoal', before = Number(a.received) || 0;
+      Object.assign(a, { title: $('#a-t').value.trim(), type: k, stage: optVal(sh, 'stage') || 'finalizado', rating, folder: $('#a-f').value, date: $('#a-d').value, nsfw: $('#a-n').checked,
+        tags: $('#a-tags').value.split(',').map(x => x.trim()).filter(Boolean), notes: $('#a-no').value });
+      let msg = '✅ Salvo';
+      if (k === 'trabalho') {
+        Object.assign(a, { clientId: resolveClient($('#a-c').value), price: $('#a-p').value === '' ? '' : Number($('#a-p').value), cur: optVal(sh, 'cur') || 'BRL',
+          paymode: optVal(sh, 'pm') || 'avista', paystat: optVal(sh, 'ps') || 'pendente', amt1: $('#a-amt1').value === '' ? '' : Number($('#a-amt1').value),
+          start: $('#a-s').value, end: $('#a-e').value, paidAt: $('#a-pa').value });
+        if (a.paymode !== '2x' && a.paystat === 'sinal') a.paystat = 'pendente';
+        const now = artReceived(a), diff = Math.round((now - before) * 100) / 100;
+        if (diff > 0) { S.fin.push({ id: uid('t'), type: 'ganho', amount: diff, cur: a.cur, desc: a.title || 'Arte', cat: 'Comissão', acc: '', date: a.paidAt || today(), artId: a.id }); msg = `✅ Salvo · ${money(diff, a.cur)} entrou no Financeiro`; }
+        else if (diff < 0) msg = '✅ Salvo · o que já entrou no Financeiro continua lá';
+        a.received = now;
+      }
+      save(); closeSheet(); if ($('#viewer').classList.contains('open')) showV(); render(); toast(msg);
     };
     sh.querySelector('[data-a=del]').onclick = async () => { closeSheet(); if (!await ask('Apagar esta arte?', 'Ela sai do Criatura Light deste aparelho.', 'Apagar', true)) return; await delArt(a); vIds = vIds.filter(x => x !== a.id); if (vIdx >= vIds.length) vIdx = vIds.length - 1; if (vIds.length) showV(); else closeViewer(); render(); };
   });
@@ -619,14 +706,16 @@ function drawJobs() {
 }
 function editClient(c) {
   const isNew = !c; c = c || { id: uid('c'), name: '', handle: '', contact: '', notes: '' };
-  const ws = S.works.filter(w => w.clientId === c.id);
+  const ws = S.works.filter(w => w.clientId === c.id), ar = S.arts.filter(x => x.clientId === c.id && !(x.nsfw && S.settings.safe));
   openSheet(`<h2>${isNew ? '👤 Novo cliente' : '👤 ' + esc(c.name)}</h2>
     <label class="f">Nome</label><input id="c-n" value="${esc(c.name)}" placeholder="Nome ou apelido">
     <label class="f">@ / rede</label><input id="c-h" value="${esc(c.handle)}" placeholder="@cliente no Instagram, X…">
     <label class="f">Contato</label><input id="c-ct" value="${esc(c.contact)}" placeholder="WhatsApp, e-mail…">
     <label class="f">Notas</label><textarea id="c-no" placeholder="Preferências, combinados…">${esc(c.notes)}</textarea>
+    ${ar.length ? `<label class="f">Artes (${ar.length})</label><div class="cthumbs">${ar.map(x => `<img alt="" data-k="${x.id}:t" data-aid="${x.id}">`).join('')}</div>` : ''}
     ${ws.length ? `<label class="f">Trabalhos (${ws.length})</label><div class="list">${ws.map(w => `<div class="card"><div class="t"><span class="grow">${esc(w.title)}</span><span class="badge">${stLabel(w.status)}</span></div></div>`).join('')}</div>` : ''}
     <div class="actions">${isNew ? '' : '<button class="btn danger" data-a="del">🗑️</button>'}<button class="btn ghost" data-a="no">Cancelar</button><button class="btn primary" data-a="ok">Salvar</button></div>`, sh => {
+    sh.querySelectorAll('.cthumbs img').forEach(im => { blobURL(im.dataset.k).then(u => { if (u) im.src = u; }); im.onclick = () => { closeSheet(); openViewer(im.dataset.aid, ar.map(x => x.id)); }; });
     sh.querySelector('[data-a=no]').onclick = closeSheet;
     sh.querySelector('[data-a=ok]').onclick = () => {
       const name = $('#c-n').value.trim(); if (!name) return toast('Dê um nome ao cliente');
@@ -640,7 +729,8 @@ function editWork(w) {
   const isNew = !w; w = w || { id: uid('w'), title: '', clientId: '', status: 'fila', price: '', cur: S.settings.currency, paid: 0, deadline: '', ordered: today(), notes: '' };
   openSheet(`<h2>${isNew ? '💼 Novo trabalho' : '💼 ' + esc(w.title || 'Trabalho')}</h2>
     <label class="f">O que é</label><input id="w-t" value="${esc(w.title)}" placeholder="ex.: Retrato meio corpo">
-    <label class="f">Cliente</label><div class="row"><select id="w-c"><option value="">—</option>${S.clients.slice().sort((a, b) => a.name.localeCompare(b.name, 'pt')).map(c => `<option value="${esc(c.id)}"${w.clientId === c.id ? ' selected' : ''}>${esc(c.name)}</option>`).join('')}</select><button class="btn" id="w-nc" style="flex:0 0 auto">＋ Novo</button></div>
+    <label class="f">Cliente</label>${clientInput('w-c', w.clientId)}
+    <small class="muted">Digite o nome — se for alguém novo, já entra nos seus 👥 Clientes.</small>
     <label class="f">Status</label>${optsHtml('st', STATUS, w.status || 'fila')}
     <label class="f">Valor</label><div class="row"><input id="w-p" type="number" inputmode="decimal" step="0.01" value="${esc(w.price)}" placeholder="0,00">${optsHtml('cur', [['BRL', 'R$'], ['USD', 'US$']], w.cur || 'BRL').replace('class="opts"', 'class="opts" style="flex:0 0 auto"')}</div>
     <label class="f">Já recebido</label><div class="row"><input id="w-pd" type="number" inputmode="decimal" step="0.01" value="${esc(w.paid || '')}" placeholder="0,00"><button class="btn" id="w-half" style="flex:0 0 auto">Sinal 50%</button><button class="btn" id="w-full" style="flex:0 0 auto">Tudo</button></div>
@@ -651,14 +741,11 @@ function editWork(w) {
     bindOpts(sh, 'st', () => {}); bindOpts(sh, 'cur', () => {});
     sh.querySelector('#w-half').onclick = () => { const p = Number($('#w-p').value) || 0; $('#w-pd').value = (p / 2).toFixed(2); };
     sh.querySelector('#w-full').onclick = () => { $('#w-pd').value = $('#w-p').value; };
-    sh.querySelector('#w-nc').onclick = async () => {
-      const n = await askText('Novo cliente', '', 'Nome'); if (!n) return editWork(isNew ? null : w);
-      const c = { id: uid('c'), name: n, handle: '', contact: '', notes: '' }; S.clients.push(c); save(); w.clientId = c.id; editWork(isNew ? Object.assign({}, w, { _draft: true }) : w);
-    };
     sh.querySelector('[data-a=no]').onclick = closeSheet;
     sh.querySelector('[data-a=ok]').onclick = () => {
       const before = Number(w.paid) || 0;
-      Object.assign(w, { title: $('#w-t').value.trim(), clientId: $('#w-c').value, status: optVal(sh, 'st') || 'fila', price: $('#w-p').value === '' ? '' : Number($('#w-p').value), cur: optVal(sh, 'cur') || 'BRL', paid: Number($('#w-pd').value) || 0, ordered: $('#w-o').value, deadline: $('#w-d').value, notes: $('#w-no').value });
+      if (!$('#w-t').value.trim()) return toast('Escreva o que é o trabalho');
+      Object.assign(w, { title: $('#w-t').value.trim(), clientId: resolveClient($('#w-c').value), status: optVal(sh, 'st') || 'fila', price: $('#w-p').value === '' ? '' : Number($('#w-p').value), cur: optVal(sh, 'cur') || 'BRL', paid: Number($('#w-pd').value) || 0, ordered: $('#w-o').value, deadline: $('#w-d').value, notes: $('#w-no').value });
       delete w._draft;
       if (!w.title) return toast('Escreva o que é o trabalho');
       if (!S.works.includes(w)) S.works.push(w);
