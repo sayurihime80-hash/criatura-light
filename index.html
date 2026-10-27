@@ -261,7 +261,7 @@ input[type=range] { min-height: 0; padding: 0; accent-color: var(--accent); bord
 <div id="sheet-bg"></div><div id="sheet" role="dialog" aria-modal="true"></div>
 <div id="toast" role="status"></div>
 <input type="file" id="pick-img" accept="image/*" multiple hidden>
-<input type="file" id="pick-backup" accept=".zip,application/zip" hidden>
+<input type="file" id="pick-backup" hidden>
 
 <script>
 /* 🛟 rede de segurança: se algo der errado ao abrir, mostra o motivo na tela (em vez de ficar tudo preto) */
@@ -291,7 +291,7 @@ input[type=range] { min-height: 0; padding: 0; accent-color: var(--accent); bord
    Criatura Light — versão leve do Criatura Problemática PRO para celular/tablet
    Dados só neste aparelho (IndexedDB). Backup: arquivo .zip (Mais → Backup).
    ===================================================================== */
-const APP_VER = '1.07';
+const APP_VER = '1.08';
 const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const uid = p => p + '_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
@@ -1033,6 +1033,7 @@ async function renderMore(m) {
       <p style="margin:0 0 10px">Tudo fica guardado <b>só neste aparelho</b>. Faça backup de vez em quando e guarde o arquivo no Drive, iCloud ou mande pra você mesmo(a).</p>
       <p class="muted" style="margin:0 0 12px;font-size:13px">Último backup: <b>${last}</b> · <span id="st-used">calculando espaço…</span></p>
       <div class="row"><button class="btn primary" id="bk-now">💾 Fazer backup</button><button class="btn" id="bk-load">📂 Restaurar</button></div>
+      <small class="muted" style="display:block;margin-top:10px;line-height:1.5">☁️ <b>iPad/iPhone:</b> em “Fazer backup”, escolha <b>Salvar em Arquivos → iCloud Drive</b>. Pra restaurar, toque em “Restaurar” → <b>Procurar → iCloud Drive</b>.<br>☁️ <b>Android:</b> escolha <b>Drive</b> (ou salve em Downloads e envie pro Drive).</small>
     </div></div>
     <div class="sect"><h3>Instalar como app</h3><div class="card">
       ${isStandalone() ? '<p style="margin:0">✅ Já está instalado como app neste aparelho.</p>'
